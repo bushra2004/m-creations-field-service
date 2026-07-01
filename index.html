@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M Creations - Field Service Tracker</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;}
+        .container{max-width:1200px;margin:0 auto;padding:20px;}
+        .landing-card{background:white;border-radius:24px;padding:50px 30px;text-align:center;max-width:900px;margin:50px auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+        .company-logo{font-size:48px;color:#0f3460;margin-bottom:10px;}
+        .company-logo span{color:#e94560;}
+        h1{font-size:36px;color:#0f3460;margin:10px 0;}
+        h1 span{color:#e94560;}
+        .subtitle{color:#6b7280;font-size:18px;margin-bottom:40px;}
+        .role-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;margin:40px 0;}
+        .role-card{background:#f8fafc;padding:35px 25px;border-radius:16px;text-decoration:none;color:#1f2937;transition:all 0.3s;border:2px solid transparent;}
+        .role-card:hover{transform:translateY(-8px);border-color:#0f3460;box-shadow:0 12px 30px rgba(15,52,96,0.15);}
+        .role-card .icon{font-size:52px;margin-bottom:16px;}
+        .role-card h3{font-size:20px;color:#0f3460;}
+        .role-card p{color:#6b7280;font-size:14px;}
+        .live-badge{display:inline-block;background:#e94560;color:white;padding:4px 12px;border-radius:20px;font-size:12px;margin-top:10px;animation:pulse 2s infinite;}
+        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+        .status-bar{background:#f1f5f9;padding:12px;border-radius:12px;font-size:14px;color:#64748b;}
+        .company-footer{text-align:center;padding:20px;color:white;font-size:12px;opacity:0.8;}
+        .company-footer strong{color:white;}
+        .company-footer span{color:#e94560;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="landing-card">
+            <div class="company-logo">🏢 <span>✦</span></div>
+            <h1>M <span>Creations</span> And Services</h1>
+            <p class="subtitle">Field Service & Delivery Tracking System</p>
+            
+            <div class="role-grid">
+                <a href="admin.html" class="role-card">
+                    <div class="icon">👑</div>
+                    <h3>Admin Dashboard</h3>
+                    <p>Manage services, employees, and reports</p>
+                    <span class="live-badge">🔴 LIVE</span>
+                </a>
+                <a href="employee.html" class="role-card">
+                    <div class="icon">👷</div>
+                    <h3>Field Engineer Portal</h3>
+                    <p>Share GPS location while on duty</p>
+                    <span class="live-badge">🔴 LIVE</span>
+                </a>
+                <a href="tracking.html" class="role-card">
+                    <div class="icon">📍</div>
+                    <h3>Customer Tracking</h3>
+                    <p>Track your service in real-time</p>
+                    <span class="live-badge">🔴 LIVE</span>
+                </a>
+            </div>
+            
+            <div class="status-bar">⚡ Real-Time Tracking • Updates every 2 seconds</div>
+        </div>
+        
+        <div class="company-footer">
+            <strong>🏢 M <span>Creations</span> And Services</strong> — Field Service Excellence © 2026
+        </div>
+    </div>
+</body>
+</html>

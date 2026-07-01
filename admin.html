@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M Creations - Admin Dashboard</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
+        
+        :root {
+            --primary: #0f3460;
+            --primary-light: #16213e;
+            --accent: #e94560;
+            --gray: #6b7280;
+        }
+        
+        .container{max-width:1400px;margin:0 auto;padding:20px;}
+        
+        .header{background:linear-gradient(135deg, #0f3460 0%, #16213e 100%);color:white;padding:20px 30px;border-radius:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+        .header h1{font-size:24px;display:flex;align-items:center;gap:10px;}
+        .header h1 span{color:#e94560;}
+        .header .subtitle{font-size:12px;opacity:0.8;font-weight:300;}
+        .live-indicator{background:#e94560;color:white;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:600;animation:pulse 1.5s infinite;}
+        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+        
+        .btn{padding:10px 20px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.2s;}
+        .btn-primary{background:#0f3460;color:white;}
+        .btn-primary:hover{background:#16213e;}
+        .btn-success{background:#10b981;color:white;}
+        .btn-success:hover{background:#059669;}
+        .btn-danger{background:#e94560;color:white;}
+        .btn-danger:hover{background:#c73652;}
+        .btn-secondary{background:#e5e7eb;color:#1f2937;}
+        .btn-secondary:hover{background:#d1d5db;}
+        .btn-word{background:#2b5797;color:white;}
+        .btn-word:hover{background:#1a3a6a;}
+        
+        .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px;}
+        .stat-card{background:white;padding:18px;border-radius:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-top:3px solid #0f3460;}
+        .stat-card .label{font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+        .stat-card .value{font-size:28px;font-weight:bold;color:#0f3460;margin-top:5px;}
+        
+        .map-container{background:white;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+        .map-wrapper{height:400px;background:#e5e7eb;border-radius:12px;position:relative;overflow:hidden;}
+        #mapCanvas{width:100%;height:100%;position:relative;}
+        .map-marker{position:absolute;transform:translate(-50%,-50%);transition:all 0.5s ease;z-index:10;}
+        .map-marker .dot{width:18px;height:18px;background:#0f3460;border-radius:50%;border:3px solid white;box-shadow:0 2px 12px rgba(15,52,96,0.4);}
+        .map-marker.active .dot{background:#10b981;animation:pulse 1.5s infinite;}
+        .map-marker .label{position:absolute;top:-30px;left:50%;transform:translateX(-50%);background:#1f2937;color:white;padding:2px 10px;border-radius:6px;font-size:10px;white-space:nowrap;}
+        .map-marker .pulse-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;background:rgba(16,185,129,0.2);animation:ringPulse 1.5s infinite;}
+        @keyframes ringPulse{0%{transform:translate(-50%,-50%) scale(1);opacity:1;}100%{transform:translate(-50%,-50%) scale(2);opacity:0;}}
+        
+        .map-controls{display:flex;gap:12px;margin-top:15px;flex-wrap:wrap;align-items:center;}
+        
+        .card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+        .card-title{font-size:16px;font-weight:bold;color:#0f3460;margin-bottom:15px;display:flex;align-items:center;gap:10px;}
+        .card-title span{color:#e94560;}
+        
+        .employee-table{width:100%;border-collapse:collapse;font-size:14px;}
+        .employee-table th{background:#f8fafc;padding:12px;text-align:left;font-weight:600;color:#0f3460;border-bottom:2px solid #e5e7eb;}
+        .employee-table td{padding:12px;border-bottom:1px solid #f3f4f6;}
+        .employee-table tr:hover{background:#f8fafc;}
+        .employee-table .status-badge{padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;}
+        .status-available{background:#dcfce7;color:#16a34a;}
+        .status-busy{background:#fef3c7;color:#d97706;}
+        
+        .ride-item{display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f3f4f6;align-items:center;}
+        .ride-item:hover{background:#f8fafc;}
+        .status-badge{padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;}
+        .status-progress{background:#dcfce7;color:#16a34a;}
+        .status-assigned{background:#fef3c7;color:#d97706;}
+        .status-completed{background:#e5e7eb;color:#6b7280;}
+        
+        .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+        .filter-btn{padding:8px 18px;border:1px solid #e5e7eb;background:white;border-radius:20px;cursor:pointer;font-size:12px;transition:0.2s;}
+        .filter-btn:hover{background:#f3f4f6;}
+        .filter-btn.active{background:#0f3460;color:white;border-color:#0f3460;}
+        
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;}
+        .modal-content{background:white;padding:30px;border-radius:16px;width:500px;max-width:90%;max-height:90vh;overflow-y:auto;}
+        .modal-content h3{margin-bottom:15px;color:#0f3460;}
+        .modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:12px;margin:10px 0;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;}
+        .modal-content input:focus,.modal-content select:focus,.modal-content textarea:focus{outline:2px solid #0f3460;}
+        
+        .debug{background:#1f2937;color:#10b981;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;max-height:150px;overflow-y:auto;}
+        .format-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0;}
+        
+        .company-footer{text-align:center;padding:20px;color:#6b7280;font-size:12px;border-top:1px solid #e5e7eb;margin-top:20px;}
+        .company-footer strong{color:#0f3460;}
+        .company-footer span{color:#e94560;}
+        
+        .add-employee-form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;}
+        .add-employee-form input{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;min-width:150px;}
+        .add-employee-form input:focus{outline:2px solid #0f3460;}
+        
+        @media (max-width:768px){.stats-grid{grid-template-columns:repeat(3,1fr);} .map-wrapper{height:300px;}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>🏢 M <span>Creations</span> And Services</h1>
+                <div class="subtitle">Field Service & Delivery Tracking System</div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="showCreateForm()">+ New Request</button>
+                <button class="btn btn-success" onclick="showReportModal()">📊 Export Report</button>
+                <button class="btn btn-secondary" onclick="showEmployeeModal()">👥 Manage Employees</button>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card"><div class="label">Active Rides</div><div class="value" id="activeCount">0</div></div>
+            <div class="stat-card"><div class="label">Live Tracking</div><div class="value" id="liveCount">0</div></div>
+            <div class="stat-card"><div class="label">Online Employees</div><div class="value" id="onlineCount">0</div></div>
+            <div class="stat-card"><div class="label">Total Employees</div><div class="value" id="totalEmployees">0</div></div>
+            <div class="stat-card"><div class="label">Total Services</div><div class="value" id="totalCount">0</div></div>
+        </div>
+        
+        <!-- Live Map -->
+        <div class="map-container">
+            <div class="card-title">📍 Live Employee Tracking</div>
+            <div class="map-wrapper" id="mapWrapper">
+                <div id="mapCanvas"></div>
+            </div>
+            <div class="map-controls">
+                <button class="btn btn-primary" onclick="centerMap()">🎯 Center</button>
+                <button class="btn btn-secondary" onclick="toggleDemo()">🎲 Demo</button>
+                <span style="margin-left:auto;font-size:12px;color:#6b7280;">🔄 Updates: <span id="lastUpdate">Just now</span></span>
+            </div>
+        </div>
+        
+        <!-- Employee Management Section -->
+        <div class="card">
+            <div class="card-title">👥 Employee Management <span style="font-size:12px;color:#6b7280;font-weight:normal;">Add or remove employees</span></div>
+            
+            <!-- Add Employee Form with Contact Number -->
+            <div class="add-employee-form">
+                <input type="text" id="newEmployeeName" placeholder="Employee Name" style="flex:2;">
+                <input type="tel" id="newEmployeeContact" placeholder="Contact Number" style="flex:1;">
+                <button class="btn btn-success" onclick="addEmployee()">+ Add Employee</button>
+            </div>
+            
+            <div style="overflow-x:auto;">
+                <table class="employee-table" id="employeeTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Join Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="employeeTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Rides List -->
+        <div class="card">
+            <div class="card-title">📋 Service Requests</div>
+            <div class="filter-bar">
+                <button class="filter-btn active" onclick="filterRides('all')">All</button>
+                <button class="filter-btn" onclick="filterRides('assigned')">Assigned</button>
+                <button class="filter-btn" onclick="filterRides('in_progress')">🟢 In Progress</button>
+                <button class="filter-btn" onclick="filterRides('completed')">Completed</button>
+            </div>
+            <div id="ridesList"></div>
+        </div>
+        
+        <!-- Debug -->
+        <div class="card">
+            <div class="card-title">🔍 System Log</div>
+            <div id="debugLog" class="debug">[M Creations System Ready]</div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="company-footer">
+            <strong>🏢 M <span>Creations</span> And Services</strong> — Field Service Excellence © 2026
+        </div>
+    </div>
+    
+    <!-- Create Modal -->
+    <div id="createModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>📝 New Service Request</h3>
+            <form id="requestForm">
+                <input type="text" id="customerName" placeholder="Customer Name" required>
+                <input type="tel" id="customerMobile" placeholder="Mobile Number" required>
+                <textarea id="customerAddress" placeholder="Customer Address" rows="3" required></textarea>
+                <select id="employeeId" required><option value="">Select Employee</option></select>
+                <div style="display:flex;gap:10px;margin-top:15px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Create</button>
+                    <button type="button" onclick="closeModal('createModal')" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:10px;cursor:pointer;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>📊 Export Report</h3>
+            <p style="color:#6b7280;font-size:13px;">Select period and format</p>
+            <select id="reportPeriod" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;margin:10px 0;">
+                <option value="daily">📅 Daily (Today)</option>
+                <option value="weekly">📊 Weekly (7 Days)</option>
+                <option value="monthly">📈 Monthly (30 Days)</option>
+                <option value="all">📋 All Time</option>
+            </select>
+            <div class="format-grid">
+                <button onclick="exportReport('excel')" class="btn btn-success">📊 Excel</button>
+                <button onclick="exportReport('word')" class="btn btn-word">📝 Word</button>
+                <button onclick="exportReport('csv')" class="btn btn-primary">📄 CSV</button>
+            </div>
+            <button onclick="closeModal('reportModal')" style="width:100%;padding:10px;background:#e5e7eb;border:none;border-radius:10px;cursor:pointer;margin-top:10px;">Cancel</button>
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+    <script>
+        let currentFilter = 'all';
+        let employees = [], rides = [], liveLocations = {};
+        let demoInterval = null, demoMode = false;
+        
+        function log(msg) {
+            const d = document.getElementById('debugLog');
+            d.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}\n${d.innerHTML}`;
+            console.log('[M Creations]', msg);
+        }
+        
+        function init() {
+            log('🚀 M Creations System Starting...');
+            loadData();
+            renderMap();
+            updateStats();
+            renderRides();
+            renderEmployees();
+            
+            setInterval(() => {
+                const newLoc = Storage.getLiveLocations();
+                if (JSON.stringify(newLoc) !== JSON.stringify(liveLocations)) {
+                    liveLocations = newLoc;
+                    renderMap();
+                    updateStats();
+                    renderRides();
+                    document.getElementById('lastUpdate').textContent = 'Just now';
+                }
+            }, 2000);
+            
+            window.addEventListener('locationUpdate', () => {
+                liveLocations = Storage.getLiveLocations();
+                renderMap();
+                updateStats();
+            });
+        }
+        
+        function loadData() {
+            employees = Storage.getEmployees();
+            rides = Storage.getRides();
+            liveLocations = Storage.getLiveLocations();
+            log(`📊 ${rides.length} rides, ${employees.length} employees, ${Object.keys(liveLocations).length} locations`);
+        }
+        
+        // ============================================
+        // EMPLOYEE MANAGEMENT WITH CONTACT
+        // ============================================
+        
+        function renderEmployees() {
+            const tbody = document.getElementById('employeeTableBody');
+            if (!tbody) return;
+            
+            if (employees.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:20px;">No employees added yet</td></tr>`;
+                return;
+            }
+            
+            tbody.innerHTML = employees.map(emp => {
+                const hasActiveRide = rides.some(r => r.employeeId === emp.id && r.status !== 'completed');
+                const statusClass = hasActiveRide ? 'status-busy' : 'status-available';
+                const statusText = hasActiveRide ? '🟡 On Duty' : '🟢 Available';
+                
+                return `
+                    <tr>
+                        <td><strong>${emp.id}</strong></td>
+                        <td>${emp.name}</td>
+                        <td>${emp.contact || 'N/A'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${emp.joinDate || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-danger" style="padding:5px 12px;font-size:11px;" onclick="deleteEmployee('${emp.id}')">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function addEmployee() {
+            const nameInput = document.getElementById('newEmployeeName');
+            const contactInput = document.getElementById('newEmployeeContact');
+            const name = nameInput.value.trim();
+            const contact = contactInput.value.trim();
+            
+            if (!name) {
+                alert('Please enter an employee name');
+                nameInput.focus();
+                return;
+            }
+            
+            if (!contact) {
+                alert('Please enter a contact number');
+                contactInput.focus();
+                return;
+            }
+            
+            if (!/^[0-9]{10}$/.test(contact)) {
+                alert('Please enter a valid 10-digit contact number');
+                contactInput.focus();
+                return;
+            }
+            
+            if (employees.some(e => e.name.toLowerCase() === name.toLowerCase())) {
+                alert('❌ Employee with this name already exists');
+                return;
+            }
+            
+            const newEmp = Storage.addEmployee(name, contact);
+            loadData();
+            renderEmployees();
+            renderRides();
+            updateStats();
+            nameInput.value = '';
+            contactInput.value = '';
+            log(`✅ Employee added: ${newEmp.name} (${newEmp.id}) - Contact: ${newEmp.contact}`);
+            alert(`✅ Employee "${newEmp.name}" added successfully!\n📱 Contact: ${newEmp.contact}`);
+        }
+        
+        function deleteEmployee(employeeId) {
+            const emp = employees.find(e => e.id === employeeId);
+            if (!emp) return;
+            
+            if (!confirm(`⚠️ Are you sure you want to delete "${emp.name}"?\n\nThis will remove the employee from the system.`)) return;
+            
+            if (Storage.deleteEmployee(employeeId)) {
+                loadData();
+                renderEmployees();
+                renderRides();
+                updateStats();
+                log(`🗑️ Employee deleted: ${emp.name}`);
+                alert(`✅ Employee "${emp.name}" deleted successfully!`);
+            }
+        }
+        
+        function showEmployeeModal() {
+            document.getElementById('employeeTable').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('newEmployeeName').focus();
+        }
+        
+        // ============================================
+        // MAP FUNCTIONS
+        // ============================================
+        
+        function renderMap() {
+            const container = document.getElementById('mapCanvas');
+            const activeRides = rides.filter(r => r.status === 'in_progress');
+            
+            container.innerHTML = `
+                <div style="position:relative;width:100%;height:100%;background:#f0f4f8;">
+                    <div style="position:absolute;top:50%;left:0;width:100%;height:1px;background:#cbd5e1;"></div>
+                    <div style="position:absolute;top:30%;left:0;width:100%;height:1px;background:#cbd5e1;border-top:2px dashed #cbd5e1;"></div>
+                    <div style="position:absolute;top:70%;left:0;width:100%;height:1px;background:#cbd5e1;border-top:2px dashed #cbd5e1;"></div>
+                    <div style="position:absolute;top:0;left:50%;width:1px;height:100%;background:#cbd5e1;"></div>
+                    <div style="position:absolute;top:10px;left:10px;font-size:11px;color:#6b7280;background:rgba(255,255,255,0.9);padding:4px 12px;border-radius:8px;">M Creations Live Map</div>
+                </div>
+            `;
+            
+            if (activeRides.length === 0) {
+                container.innerHTML += `
+                    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#6b7280;">
+                        <div style="font-size:48px;">📍</div>
+                        <p style="font-weight:600;color:#0f3460;">No Active Services</p>
+                        <p style="font-size:13px;">Start a ride to track live location</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            activeRides.forEach(ride => {
+                const loc = liveLocations[ride.id];
+                const emp = employees.find(e => e.id === ride.employeeId);
+                const hasLoc = loc && loc.lat && loc.lng;
+                
+                let x = 50, y = 50;
+                if (hasLoc) {
+                    x = ((loc.lng - 68) / 20) * 100;
+                    y = ((38 - loc.lat) / 30) * 100;
+                    x = Math.max(5, Math.min(95, x));
+                    y = Math.max(5, Math.min(95, y));
+                }
+                
+                const marker = document.createElement('div');
+                marker.className = `map-marker ${hasLoc ? 'active' : ''}`;
+                marker.style.left = x + '%';
+                marker.style.top = y + '%';
+                marker.id = `marker-${ride.id}`;
+                marker.innerHTML = `
+                    ${hasLoc ? '<div class="pulse-ring"></div>' : ''}
+                    <div class="dot"></div>
+                    <div class="label">${emp?.name || 'Unknown'} ${hasLoc ? '🟢' : '⚪'}</div>
+                `;
+                container.appendChild(marker);
+            });
+        }
+        
+        function centerMap() {
+            const active = rides.filter(r => r.status === 'in_progress');
+            if (active.length === 0) { alert('No active services'); return; }
+            renderMap();
+        }
+        
+        function toggleDemo() {
+            demoMode = !demoMode;
+            if (demoMode) {
+                document.querySelector('.map-controls .btn-secondary').textContent = '⏹ Stop';
+                const active = rides.filter(r => r.status === 'in_progress');
+                if (active.length === 0) { 
+                    alert('Start a service first'); 
+                    demoMode = false; 
+                    document.querySelector('.map-controls .btn-secondary').textContent = '🎲 Demo'; 
+                    return; 
+                }
+                let step = 0;
+                demoInterval = setInterval(() => {
+                    step++;
+                    active.forEach((ride, i) => {
+                        const cur = liveLocations[ride.id] || { lat: 25 + i*0.01, lng: 75 + i*0.01 };
+                        Storage.updateLiveLocation(ride.id, cur.lat + (Math.sin(step/10+i)*0.0003), cur.lng + (Math.cos(step/8+i)*0.0003));
+                    });
+                }, 500);
+            } else {
+                clearInterval(demoInterval);
+                document.querySelector('.map-controls .btn-secondary').textContent = '🎲 Demo';
+            }
+        }
+        
+        // ============================================
+        // STATS & RIDES
+        // ============================================
+        
+        function updateStats() {
+            const active = rides.filter(r => r.status === 'in_progress');
+            const live = active.filter(r => liveLocations[r.id]);
+            const online = employees.filter(e => rides.some(r => r.employeeId === e.id && r.status === 'in_progress' && liveLocations[r.id]));
+            
+            document.getElementById('activeCount').textContent = active.length;
+            document.getElementById('liveCount').textContent = live.length;
+            document.getElementById('onlineCount').textContent = online.length;
+            document.getElementById('totalEmployees').textContent = employees.length;
+            document.getElementById('totalCount').textContent = rides.length;
+        }
+        
+        function renderRides() {
+            const container = document.getElementById('ridesList');
+            let filtered = rides;
+            if (currentFilter !== 'all') filtered = rides.filter(r => r.status === currentFilter);
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7280;">No service requests</div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(ride => {
+                const emp = employees.find(e => e.id === ride.employeeId);
+                const isLive = ride.status === 'in_progress' && liveLocations[ride.id];
+                const cls = ride.status === 'in_progress' ? 'status-progress' : ride.status === 'assigned' ? 'status-assigned' : 'status-completed';
+                const txt = ride.status === 'in_progress' ? '🟢 Live' : ride.status === 'assigned' ? '⏳ Assigned' : '✅ Completed';
+                return `
+                    <div class="ride-item">
+                        <div>
+                            <strong style="color:#0f3460;">${ride.id}</strong>
+                            <span class="status-badge ${cls}">${txt}</span>
+                            ${isLive ? ' ●' : ''}
+                            <div style="font-size:13px;color:#6b7280;">${ride.customerName} → ${emp?.name || 'Unassigned'} ${ride.totalDistance ? `| 📏 ${ride.totalDistance}KM` : ''}</div>
+                        </div>
+                        <div style="font-size:12px;color:#6b7280;">${isLive ? '📍 Live' : new Date(ride.createdAt).toLocaleTimeString()}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function filterRides(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            renderRides();
+        }
+        
+        // ============================================
+        // MODALS
+        // ============================================
+        
+        function showCreateForm() {
+            const select = document.getElementById('employeeId');
+            select.innerHTML = '<option value="">Select Field Engineer</option>';
+            employees.forEach(emp => select.innerHTML += `<option value="${emp.id}">${emp.name} (${emp.contact || 'N/A'})</option>`);
+            document.getElementById('createModal').style.display = 'flex';
+        }
+        
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function showReportModal() { document.getElementById('reportModal').style.display = 'flex'; }
+        
+        document.getElementById('requestForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const ref = Storage.generateReference();
+            const ride = {
+                id: ref,
+                customerName: document.getElementById('customerName').value,
+                customerMobile: document.getElementById('customerMobile').value,
+                customerAddress: document.getElementById('customerAddress').value,
+                employeeId: document.getElementById('employeeId').value,
+                status: 'assigned',
+                startTime: null, endTime: null, totalDistance: 0, stops: 0,
+                createdAt: new Date().toISOString(),
+                trackingLink: `tracking.html?id=${ref}`
+            };
+            rides.push(ride);
+            Storage.saveRides(rides);
+            alert(`✅ Service Request Created!\n📋 Reference: ${ref}`);
+            closeModal('createModal');
+            loadData();
+            renderRides();
+            updateStats();
+            e.target.reset();
+        });
+        
+        // ============================================
+        // EXPORT FUNCTIONS
+        // ============================================
+        
+        function exportReport(format) {
+            const period = document.getElementById('reportPeriod').value;
+            const now = new Date();
+            let filtered = rides;
+            
+            if (period === 'daily') filtered = rides.filter(r => new Date(r.createdAt).toDateString() === now.toDateString());
+            else if (period === 'weekly') { const d = new Date(); d.setDate(d.getDate()-7); filtered = rides.filter(r => new Date(r.createdAt) >= d); }
+            else if (period === 'monthly') { const d = new Date(); d.setMonth(d.getMonth()-1); filtered = rides.filter(r => new Date(r.createdAt) >= d); }
+            
+            if (filtered.length === 0) { alert('No service data for this period'); return; }
+            
+            const rideData = filtered.map(ride => {
+                const emp = employees.find(e => e.id === ride.employeeId);
+                let km = ride.totalDistance || 0;
+                let stops = ride.stops || 0;
+                let updates = 0;
+                for (const key in liveLocations) if (key === ride.id) updates++;
+                
+                if (km === 0 && updates > 1) {
+                    const locs = [];
+                    for (const key in liveLocations) if (key === ride.id) locs.push(liveLocations[key]);
+                    locs.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+                    let dist = 0;
+                    for (let i=1; i<locs.length; i++) {
+                        const p = locs[i-1], c = locs[i];
+                        const dLat = (c.lat-p.lat)*Math.PI/180, dLng = (c.lng-p.lng)*Math.PI/180;
+                        const a = Math.sin(dLat/2)**2 + Math.cos(p.lat*Math.PI/180)*Math.cos(c.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+                        dist += 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    }
+                    km = Math.round(dist*100)/100;
+                }
+                
+                return {
+                    id: ride.id,
+                    customer: ride.customerName,
+                    mobile: ride.customerMobile,
+                    employee: emp?.name || 'Unassigned',
+                    employeeContact: emp?.contact || 'N/A',
+                    status: ride.status,
+                    start: ride.startTime || 'N/A',
+                    end: ride.endTime || 'N/A',
+                    duration: ride.duration || 'N/A',
+                    km: km,
+                    stops: stops,
+                    updates: updates,
+                    created: ride.createdAt
+                };
+            });
+            
+            const totalKM = rideData.reduce((sum, r) => sum + r.km, 0);
+            const completed = rideData.filter(r => r.status === 'completed').length;
+            const periodLabel = document.getElementById('reportPeriod').selectedOptions[0].text;
+            
+            if (format === 'word') exportWord(rideData, totalKM, completed, periodLabel, period);
+            else if (format === 'excel') exportExcel(rideData, totalKM, completed, periodLabel, period);
+            else if (format === 'csv') exportExcel(rideData, totalKM, completed, periodLabel, period);
+        }
+        
+        // ============================================
+        // WORD EXPORT
+        // ============================================
+        
+        function exportWord(rideData, totalKM, completed, periodLabel, period) {
+            const date = new Date().toISOString().split('T')[0];
+            let tableRows = '';
+            rideData.forEach((r, i) => {
+                tableRows += `
+                    <tr>
+                        <td style="border:1px solid #ddd;padding:8px;">${i+1}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.id}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.customer}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.mobile}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.employee}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.employeeContact}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.status}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.start}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.end}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.duration}</td>
+                        <td style="border:1px solid #ddd;padding:8px;font-weight:bold;color:#0f3460;">${r.km.toFixed(2)}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.stops}</td>
+                        <td style="border:1px solid #ddd;padding:8px;">${r.updates}</td>
+                    </tr>
+                `;
+            });
+            
+            const html = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset="utf-8"><title>M Creations Service Report</title>
+                <style>
+                    body{font-family:Arial,sans-serif;padding:40px;}
+                    .header{text-align:center;border-bottom:3px solid #0f3460;padding-bottom:20px;margin-bottom:30px;}
+                    .header h1{color:#0f3460;font-size:28px;margin:0;}
+                    .header h1 span{color:#e94560;}
+                    .header .sub{color:#6b7280;font-size:14px;}
+                    .header .brand{color:#0f3460;font-size:12px;font-weight:bold;}
+                    .summary{background:#f0f4ff;padding:20px;border-radius:10px;margin-bottom:30px;}
+                    .summary table{width:100%;}
+                    .summary td{padding:8px 15px;font-size:14px;}
+                    .summary .label{font-weight:bold;color:#0f3460;}
+                    .summary .value{font-weight:bold;font-size:18px;color:#1f2937;}
+                    table{width:100%;border-collapse:collapse;font-size:11px;}
+                    th{background:#0f3460;color:white;padding:8px;border:1px solid #0f3460;text-align:left;}
+                    td{padding:8px;border:1px solid #ddd;}
+                    tr:nth-child(even){background:#f9fafb;}
+                    .footer{text-align:center;color:#6b7280;font-size:12px;margin-top:40px;border-top:1px solid #e5e7eb;padding-top:20px;}
+                    .total-row{background:#e5e7eb !important;font-weight:bold;}
+                </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🏢 M <span>Creations</span> And Services</h1>
+                        <div class="sub">Field Service Report</div>
+                        <div class="brand">Generated: ${new Date().toLocaleString()} | Period: ${periodLabel}</div>
+                    </div>
+                    <div class="summary">
+                        <table>
+                            <tr><td class="label">📊 Total Services</td><td class="value">${rideData.length}</td>
+                                <td class="label">✅ Completed</td><td class="value">${completed}</td></tr>
+                            <tr><td class="label">📏 Total KM</td><td class="value">${totalKM.toFixed(2)} KM</td>
+                                <td class="label">⏱ Avg Duration</td>
+                                <td class="value">${rideData.filter(r=>r.duration!=='N/A').length > 0 ? Math.round(rideData.filter(r=>r.duration!=='N/A').reduce((s,r)=>s+parseFloat(r.duration),0) / rideData.filter(r=>r.duration!=='N/A').length) : '--'} min</td></tr>
+                            <tr><td class="label">👥 Unique Customers</td><td class="value">${new Set(rideData.map(r=>r.customer)).size}</td>
+                                <td class="label">👷 Active Engineers</td><td class="value">${new Set(rideData.map(r=>r.employee)).size}</td></tr>
+                        </table>
+                    </div>
+                    <h3>📋 Service Details</h3>
+                    <table>
+                        <thead><tr><th>#</th><th>REF ID</th><th>Customer</th><th>Customer Mobile</th><th>Engineer</th><th>Engineer Contact</th><th>Status</th><th>Start</th><th>End</th><th>Min</th><th>KM</th><th>Stops</th><th>Updates</th></tr></thead>
+                        <tbody>${tableRows}
+                            <tr class="total-row"><td colspan="9" style="text-align:right;">TOTAL:</td>
+                                <td>${rideData.filter(r=>r.duration!=='N/A').length > 0 ? Math.round(rideData.filter(r=>r.duration!=='N/A').reduce((s,r)=>s+parseFloat(r.duration),0)) : '--'}</td>
+                                <td>${totalKM.toFixed(2)}</td>
+                                <td>${rideData.reduce((s,r)=>s+r.stops,0)}</td>
+                                <td>${rideData.reduce((s,r)=>s+r.updates,0)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="footer">
+                        <p>🏢 M <span style="color:#e94560;">Creations</span> And Services — Field Service Excellence</p>
+                        <p>© ${new Date().getFullYear()} M Creations. All rights reserved.</p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const blob = new Blob([html], { type: 'application/msword;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `mcreations-report-${period}-${date}.doc`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            closeModal('reportModal');
+            alert(`✅ M Creations Word Report Exported!\n📄 File: mcreations-report-${period}-${date}.doc`);
+        }
+        
+        // ============================================
+        // EXCEL/CSV EXPORT
+        // ============================================
+        
+        function exportExcel(rideData, totalKM, completed, periodLabel, period) {
+            const date = new Date().toISOString().split('T')[0];
+            let csv = "REF ID,Customer,Customer Mobile,Engineer,Engineer Contact,Status,Start,End,Duration (min),KM,Stops,Updates,Created\n";
+            rideData.forEach(r => {
+                csv += `"${r.id}","${r.customer}","${r.mobile}","${r.employee}","${r.employeeContact}","${r.status}","${r.start}","${r.end}","${r.duration}","${r.km.toFixed(2)}","${r.stops}","${r.updates}","${r.created}"\n`;
+            });
+            csv += `\n"M Creations Service Summary","Total: ${rideData.length}","Completed: ${completed}","Total KM: ${totalKM.toFixed(2)}","Period: ${periodLabel}","Generated: ${new Date().toLocaleString()}"\n`;
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `mcreations-report-${period}-${date}.csv`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            closeModal('reportModal');
+            alert(`✅ M Creations Report Exported!`);
+        }
+        
+        window.onload = init;
+    </script>
+</body>
+</html>

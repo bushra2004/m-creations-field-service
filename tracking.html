@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M Creations - Track Your Service</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0f3460 0%,#16213e 50%,#1a1a2e 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+        .card{background:white;border-radius:24px;padding:40px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+        .brand{text-align:center;margin-bottom:20px;}
+        .brand h1{color:#0f3460;font-size:24px;display:flex;align-items:center;justify-content:center;gap:10px;}
+        .brand h1 span{color:#e94560;}
+        .brand .sub{color:#6b7280;font-size:13px;}
+        .search-box{display:flex;gap:12px;margin:20px 0;flex-wrap:wrap;}
+        .search-box input{flex:1;padding:14px;border:2px solid #e5e7eb;border-radius:12px;font-size:16px;min-width:150px;}
+        .search-box input:focus{outline:2px solid #0f3460;}
+        .search-box button{padding:14px 30px;background:#0f3460;color:white;border:none;border-radius:12px;font-weight:bold;cursor:pointer;transition:0.2s;}
+        .search-box button:hover{background:#16213e;}
+        .info-box{background:#f8fafc;border-radius:16px;padding:20px;margin-top:20px;}
+        .status-badge{padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;display:inline-block;margin:10px 0;}
+        .status-progress{background:#dcfce7;color:#16a34a;}
+        .status-assigned{background:#fef3c7;color:#d97706;}
+        .status-completed{background:#e5e7eb;color:#6b7280;}
+        .live-map{height:150px;background:#e5e7eb;border-radius:12px;margin:15px 0;position:relative;overflow:hidden;}
+        .marker{position:absolute;transform:translate(-50%,-50%);transition:all 0.5s ease;}
+        .marker .dot{width:20px;height:20px;background:#10b981;border-radius:50%;border:3px solid white;box-shadow:0 2px 12px rgba(16,185,129,0.4);}
+        .marker .ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border-radius:50%;background:rgba(16,185,129,0.15);animation:ringPulse 1.5s infinite;}
+        @keyframes ringPulse{0%{transform:translate(-50%,-50%) scale(1);opacity:1;}100%{transform:translate(-50%,-50%) scale(2);opacity:0;}}
+        .distance-box{background:#dbeafe;padding:16px;border-radius:12px;text-align:center;margin:15px 0;border:2px solid #93c5fd;}
+        .distance-box .km{font-size:32px;font-weight:bold;color:#0f3460;}
+        .distance-box .label{color:#6b7280;font-size:13px;}
+        .route-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0;}
+        .route-stat{background:#f1f5f9;padding:12px;border-radius:8px;text-align:center;}
+        .route-stat .number{font-size:20px;font-weight:bold;color:#0f3460;}
+        .route-stat .label{font-size:11px;color:#6b7280;}
+        .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:15px 0;}
+        .info-grid .item{font-size:14px;padding:8px;background:#f1f5f9;border-radius:8px;}
+        .info-grid .item .label{color:#6b7280;font-size:11px;display:block;}
+        .info-grid .item .value{font-weight:bold;font-size:15px;color:#1f2937;}
+        .error{background:#fee2e2;color:#991b1b;padding:15px;border-radius:12px;margin-top:15px;}
+        .live-badge{display:inline-block;background:#e94560;color:white;padding:2px 14px;border-radius:20px;font-size:12px;animation:pulse 1.5s infinite;}
+        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+        .debug{background:#1f2937;color:#10b981;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;margin-top:15px;max-height:100px;overflow-y:auto;}
+        .company-footer{text-align:center;padding:15px 0 0 0;color:#6b7280;font-size:11px;border-top:1px solid #e5e7eb;margin-top:20px;}
+        .company-footer strong{color:#0f3460;}
+        .company-footer span{color:#e94560;}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="brand">
+            <h1>🏢 M <span>Creations</span> And Services</h1>
+            <div class="sub">Track Your Service in Real-Time</div>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="trackingId" placeholder="Enter REF (e.g., REF-1001)">
+            <button onclick="trackRide()">Track Now</button>
+        </div>
+        
+        <div id="result"></div>
+        <div class="debug" id="debugLog">[M Creations Ready] Enter your reference number...</div>
+        
+        <div class="company-footer">
+            <strong>🏢 M <span>Creations</span> And Services</strong> — Service Excellence
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+    <script>
+        let refreshTimer = null;
+        
+        function log(msg) {
+            const d = document.getElementById('debugLog');
+            d.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}\n${d.innerHTML}`;
+            console.log('[M Creations]', msg);
+        }
+        
+        function calculateDistance(lat1,lng1,lat2,lng2) {
+            const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+            const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+            return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+        
+        function trackRide() {
+            if (refreshTimer) clearInterval(refreshTimer);
+            const id = document.getElementById('trackingId').value.trim();
+            if (!id) { document.getElementById('result').innerHTML = '<div class="error">Please enter a reference number</div>'; return; }
+            
+            const rides = Storage.getRides();
+            const ride = rides.find(r => r.id === id);
+            if (!ride) { document.getElementById('result').innerHTML = '<div class="error">❌ Invalid Reference ID</div>'; return; }
+            
+            displayRideInfo(ride);
+            if (ride.status === 'in_progress') {
+                refreshTimer = setInterval(() => {
+                    const updated = Storage.getRides().find(r => r.id === id);
+                    if (updated) displayRideInfo(updated);
+                }, 2000);
+            }
+        }
+        
+        function displayRideInfo(ride) {
+            const employees = Storage.getEmployees();
+            const employee = employees.find(e => e.id === ride.employeeId);
+            const locations = Storage.getLiveLocations();
+            const location = locations[ride.id];
+            
+            const allLocs = [];
+            for (const key in locations) if (key === ride.id) allLocs.push(locations[key]);
+            allLocs.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+            
+            let totalKM = 0, stops = 0;
+            if (allLocs.length > 1) {
+                for (let i=1; i<allLocs.length; i++) {
+                    totalKM += calculateDistance(allLocs[i-1].lat, allLocs[i-1].lng, allLocs[i].lat, allLocs[i].lng);
+                    if (totalKM < 0.01 && i>1) stops++;
+                }
+                totalKM = Math.round(totalKM * 100) / 100;
+            }
+            
+            const displayKM = ride.totalDistance || totalKM || 0;
+            const displayStops = ride.stops || stops || 0;
+            
+            let statusText, statusClass;
+            if (ride.status === 'assigned') { statusText = '📞 Service Assigned'; statusClass = 'status-assigned'; }
+            else if (ride.status === 'in_progress') { statusText = '🚗 Engineer On The Way!'; statusClass = 'status-progress'; }
+            else { statusText = '✅ Service Completed'; statusClass = 'status-completed'; }
+            
+            const isLive = ride.status === 'in_progress' && location;
+            
+            let mapHTML = '';
+            if (isLive) {
+                const x = Math.max(5, Math.min(95, ((location.lng-68)/20)*100));
+                const y = Math.max(5, Math.min(95, ((38-location.lat)/30)*100));
+                mapHTML = `
+                    <div class="live-map"><div class="marker" style="left:${x}%;top:${y}%;">
+                        <div class="ring"></div><div class="dot"></div>
+                    </div></div>
+                    <div style="font-size:13px;color:#6b7280;">📍 ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}<br>🕒 Updated: ${new Date(location.timestamp).toLocaleTimeString()}</div>
+                    <div style="color:#10b981;font-size:13px;">🔄 Live Tracking Active</div>
+                `;
+            } else if (ride.status === 'completed') {
+                mapHTML = `<div style="background:#dcfce7;padding:20px;border-radius:12px;text-align:center;margin:15px 0;">
+                    ✅ Service Completed at ${ride.endTime ? new Date(ride.endTime).toLocaleTimeString() : ''}
+                    ${ride.duration ? `<br>⏱ Duration: ${ride.duration} minutes` : ''}
+                    <br><span style="font-size:12px;color:#6b7280;">Thank you for choosing M Creations</span>
+                </div>`;
+            } else {
+                mapHTML = `<div style="background:#fef3c7;padding:20px;border-radius:12px;text-align:center;margin:15px 0;">
+                    ⏳ Engineer is being assigned...
+                </div>`;
+            }
+            
+            let distanceHTML = (ride.status === 'completed' || ride.status === 'in_progress') ? `
+                <div class="distance-box">
+                    <div class="label">Total Distance Traveled</div>
+                    <div class="km">${displayKM.toFixed(2)} <span style="font-size:16px;">KM</span></div>
+                    ${displayStops > 0 ? `<div style="font-size:12px;color:#6b7280;">📍 ${displayStops} stops made</div>` : ''}
+                </div>
+                <div class="route-stats">
+                    <div class="route-stat"><div class="number">${allLocs.length}</div><div class="label">Location Updates</div></div>
+                    <div class="route-stat"><div class="number">${displayKM.toFixed(1)}</div><div class="label">KM Traveled</div></div>
+                    <div class="route-stat"><div class="number">${ride.duration || '--'}</div><div class="label">Minutes</div></div>
+                </div>
+            ` : '';
+            
+            document.getElementById('result').innerHTML = `
+                <div class="info-box">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                        <strong style="font-size:18px;color:#0f3460;">🏢 ${ride.id}</strong>
+                        ${isLive ? '<span class="live-badge">● LIVE</span>' : ''}
+                        ${ride.status === 'completed' ? '✅ Service Complete' : ''}
+                    </div>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                    ${distanceHTML}
+                    ${mapHTML}
+                    <div class="info-grid">
+                        <div class="item"><span class="label">Customer</span><span class="value">${ride.customerName}</span></div>
+                        <div class="item"><span class="label">Mobile</span><span class="value">${ride.customerMobile}</span></div>
+                        <div class="item"><span class="label">Engineer</span><span class="value">${employee?.name || 'Being assigned'}</span></div>
+                        <div class="item"><span class="label">Requested</span><span class="value">${new Date(ride.createdAt).toLocaleString()}</span></div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        if (id) { document.getElementById('trackingId').value = id; trackRide(); }
+        
+        document.getElementById('trackingId').addEventListener('keypress', e => { if (e.key === 'Enter') trackRide(); });
+    </script>
+</body>
+</html>
