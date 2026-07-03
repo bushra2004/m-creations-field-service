@@ -7,11 +7,20 @@ const Storage = {
     init() {
         console.log('🔧 M Creations Service Tracker initialized');
         
+        // Initialize employees with passwords
         if (!localStorage.getItem('employees')) {
             const employees = [
-                { id: 'EMP001', name: 'Rajesh Kumar', contact: '9876543210', status: 'available', joinDate: '2024-01-15' },
-                { id: 'EMP002', name: 'Priya Singh', contact: '9876543211', status: 'available', joinDate: '2024-02-01' },
-                { id: 'EMP003', name: 'Amit Sharma', contact: '9876543212', status: 'available', joinDate: '2024-03-10' }
+                { id: 'EMP001', name: 'Emp', contact: '9876543210', password: 'emp123', status: 'available', joinDate: '2024-01-15' },
+                { id: 'EMP002', name: 'Bandu', contact: '9876543211', password: 'bandu123', status: 'available', joinDate: '2024-02-01' },
+                { id: 'EMP003', name: 'Fayaz', contact: '9876543212', password: 'fayaz123', status: 'available', joinDate: '2024-03-10' },
+                { id: 'EMP004', name: 'Gouse', contact: '9876543213', password: 'gouse123', status: 'available', joinDate: '2024-03-15' },
+                { id: 'EMP005', name: 'Jabbar', contact: '9876543214', password: 'jabbar123', status: 'available', joinDate: '2024-04-01' },
+                { id: 'EMP006', name: 'Kalim', contact: '9876543215', password: 'kalim123', status: 'available', joinDate: '2024-04-10' },
+                { id: 'EMP007', name: 'Office', contact: '9876543216', password: 'office123', status: 'available', joinDate: '2024-05-01' },
+                { id: 'EMP008', name: 'Prasanth', contact: '9876543217', password: 'prasanth123', status: 'available', joinDate: '2024-05-15' },
+                { id: 'EMP009', name: 'Praveen', contact: '9876543218', password: 'praveen123', status: 'available', joinDate: '2024-06-01' },
+                { id: 'EMP010', name: 'Sharanayya', contact: '9876543219', password: 'sharanayya123', status: 'available', joinDate: '2024-06-15' },
+                { id: 'EMP011', name: 'Waheed', contact: '9876543220', password: 'waheed123', status: 'available', joinDate: '2024-07-01' }
             ];
             localStorage.setItem('employees', JSON.stringify(employees));
         }
@@ -30,6 +39,10 @@ const Storage = {
         
         console.log('✅ M Creations System Ready');
     },
+    
+    // ============================================
+    // EMPLOYEE MANAGEMENT
+    // ============================================
     
     getEmployees() {
         try {
@@ -51,13 +64,55 @@ const Storage = {
         }
     },
     
-    addEmployee(name, contact) {
+    getEmployeeByUsername(username) {
+        const employees = this.getEmployees();
+        return employees.find(e => e.name.toLowerCase() === username.toLowerCase());
+    },
+    
+    getEmployeeById(id) {
+        const employees = this.getEmployees();
+        return employees.find(e => e.id === id);
+    },
+    
+    // Employee Login
+    loginEmployee(username, password) {
+        const employee = this.getEmployeeByUsername(username);
+        if (!employee) {
+            return { success: false, message: 'Employee not found' };
+        }
+        if (employee.password === password) {
+            // Save current session
+            sessionStorage.setItem('loggedInEmployee', JSON.stringify(employee));
+            return { success: true, employee: employee };
+        }
+        return { success: false, message: 'Incorrect password' };
+    },
+    
+    // Get logged in employee
+    getLoggedInEmployee() {
+        try {
+            const data = sessionStorage.getItem('loggedInEmployee');
+            return data ? JSON.parse(data) : null;
+        } catch(e) {
+            return null;
+        }
+    },
+    
+    // Logout
+    logoutEmployee() {
+        sessionStorage.removeItem('loggedInEmployee');
+        return true;
+    },
+    
+    // Add Employee with password
+    addEmployee(name, contact, password) {
         const employees = this.getEmployees();
         const newId = 'EMP' + String(employees.length + 1).padStart(3, '0');
         const newEmployee = {
             id: newId,
             name: name.trim(),
             contact: contact.trim(),
+            password: password || name.trim().toLowerCase() + '123',
             status: 'available',
             joinDate: new Date().toISOString().split('T')[0]
         };
@@ -65,6 +120,17 @@ const Storage = {
         this.saveEmployees(employees);
         console.log('✅ Employee added:', newEmployee);
         return newEmployee;
+    },
+    
+    // Update Employee Password
+    updateEmployeePassword(employeeId, newPassword) {
+        const employees = this.getEmployees();
+        const index = employees.findIndex(e => e.id === employeeId);
+        if (index === -1) return false;
+        employees[index].password = newPassword;
+        this.saveEmployees(employees);
+        console.log(`🔑 Password updated for ${employees[index].name}`);
+        return true;
     },
     
     deleteEmployee(employeeId) {
@@ -84,6 +150,10 @@ const Storage = {
         console.log('🗑️ Employee deleted:', employee.name);
         return true;
     },
+    
+    // ============================================
+    // RIDE MANAGEMENT
+    // ============================================
     
     getRides() {
         try {
@@ -105,6 +175,20 @@ const Storage = {
             return false;
         }
     },
+    
+    getRidesForEmployee(employeeId) {
+        const rides = this.getRides();
+        return rides.filter(r => r.employeeId === employeeId);
+    },
+    
+    getActiveRidesForEmployee(employeeId) {
+        const rides = this.getRides();
+        return rides.filter(r => r.employeeId === employeeId && r.status !== 'completed');
+    },
+    
+    // ============================================
+    // LOCATION MANAGEMENT
+    // ============================================
     
     getLiveLocations() {
         try {
@@ -150,6 +234,10 @@ const Storage = {
         return true;
     },
     
+    // ============================================
+    // DISTANCE CALCULATION
+    // ============================================
+    
     calculateDistance(lat1, lng1, lat2, lng2) {
         const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -161,6 +249,10 @@ const Storage = {
         return R * c;
     },
     
+    // ============================================
+    // REFERENCE GENERATION
+    // ============================================
+    
     generateReference() {
         let counter = parseInt(localStorage.getItem('rideCounter') || '1000');
         counter++;
@@ -171,4 +263,4 @@ const Storage = {
 
 Storage.init();
 console.log('🚀 M Creations And Services - Field Tracker Ready');
-console.log('📌 M Creations Service Excellence');
+console.log('📌 Default passwords: employee name + "123" (e.g., emp123)');

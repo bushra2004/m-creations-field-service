@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - M Creations</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0f3460 0%,#16213e 50%,#1a1a2e 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+        
+        .login-container{background:white;border-radius:24px;padding:50px 40px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+        
+        .brand{text-align:center;margin-bottom:30px;}
+        .brand h1{color:#0f3460;font-size:26px;display:flex;align-items:center;justify-content:center;gap:10px;}
+        .brand h1 span{color:#e94560;}
+        .brand .sub{color:#6b7280;font-size:14px;margin-top:5px;}
+        
+        .form-group{margin-bottom:20px;}
+        .form-group label{display:block;font-weight:600;font-size:14px;color:#1f2937;margin-bottom:5px;}
+        .form-group input{width:100%;padding:14px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:15px;transition:0.2s;}
+        .form-group input:focus{outline:none;border-color:#0f3460;box-shadow:0 0 0 3px rgba(15,52,96,0.1);}
+        
+        .btn-login{width:100%;padding:16px;background:#0f3460;color:white;border:none;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.2s;}
+        .btn-login:hover{background:#16213e;}
+        .btn-login:disabled{opacity:0.5;cursor:not-allowed;}
+        
+        .error-message{background:#fee2e2;color:#991b1b;padding:12px 16px;border-radius:10px;margin-bottom:15px;display:none;font-size:14px;}
+        .success-message{background:#dcfce7;color:#166534;padding:12px 16px;border-radius:10px;margin-bottom:15px;display:none;font-size:14px;}
+        
+        .footer-links{text-align:center;margin-top:20px;font-size:13px;color:#6b7280;}
+        .footer-links a{color:#0f3460;text-decoration:none;font-weight:600;}
+        .footer-links a:hover{text-decoration:underline;}
+        
+        .demo-note{background:#f1f5f9;padding:15px;border-radius:12px;margin-top:20px;font-size:13px;color:#6b7280;text-align:center;}
+        .demo-note strong{color:#0f3460;}
+        
+        .company-footer{text-align:center;padding:20px 0 0 0;color:#6b7280;font-size:11px;border-top:1px solid #e5e7eb;margin-top:25px;}
+        .company-footer strong{color:#0f3460;}
+        .company-footer span{color:#e94560;}
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="brand">
+            <h1>🏢 M <span>Creations</span></h1>
+            <div class="sub">Employee Login · Field Service System</div>
+        </div>
+        
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+        
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="username">👤 Employee Name</label>
+                <input type="text" id="username" placeholder="Enter your name (e.g., Emp)" required autofocus>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">🔑 Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="btn-login" id="loginBtn">🚀 Login</button>
+        </form>
+        
+        <div class="demo-note">
+            💡 <strong>Demo Credentials:</strong><br>
+            Username: <strong>Emp</strong> · Password: <strong>emp123</strong><br>
+            Username: <strong>Bandu</strong> · Password: <strong>bandu123</strong>
+        </div>
+        
+        <div class="footer-links">
+            <a href="index.html">🏠 Back to Home</a> · <a href="admin.html">👑 Admin Login</a>
+        </div>
+        
+        <div class="company-footer">
+            <strong>🏢 M <span>Creations</span> And Services</strong> — Field Service Excellence
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+    <script>
+        // Check if already logged in
+        if (Storage.getLoggedInEmployee()) {
+            window.location.href = 'employee.html';
+        }
+        
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+        
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+        
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const btn = document.getElementById('loginBtn');
+            
+            if (!username || !password) {
+                showError('Please enter both username and password');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Logging in...';
+            
+            setTimeout(() => {
+                const result = Storage.loginEmployee(username, password);
+                
+                if (result.success) {
+                    showSuccess(`✅ Welcome back, ${result.employee.name}! Redirecting...`);
+                    setTimeout(() => {
+                        window.location.href = 'employee.html';
+                    }, 1000);
+                } else {
+                    showError('❌ ' + result.message);
+                    btn.disabled = false;
+                    btn.textContent = '🚀 Login';
+                }
+            }, 500);
+        }
+        
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('password').focus();
+            }
+        });
+        
+        document.getElementById('password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>

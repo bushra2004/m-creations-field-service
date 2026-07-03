@@ -3,208 +3,401 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M Creations - Employee Tracker</title>
+    <title>M Creations - Employee Dashboard</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;padding:20px;}
         .container{max-width:600px;margin:0 auto;}
+        
+        .header{background:linear-gradient(135deg,#0f3460 0%,#16213e 100%);color:white;padding:20px;border-radius:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+        .header h1{font-size:20px;display:flex;align-items:center;gap:10px;}
+        .header h1 span{color:#e94560;}
+        .header .sub{font-size:11px;opacity:0.8;}
+        .logout-btn{background:#e94560;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;}
+        .logout-btn:hover{background:#c73652;}
+        
         .card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
-        .header{background:linear-gradient(135deg,#1428A0 0%,#2563eb 100%);color:white;padding:20px;border-radius:16px;margin-bottom:20px;text-align:center;}
-        .header h1{font-size:22px;display:flex;align-items:center;justify-content:center;gap:10px;}
-        .header .sub{font-size:12px;opacity:0.8;}
-        select{width:100%;padding:12px;border:2px solid #e5e7eb;border-radius:10px;font-size:16px;}
-        .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.2s;}
-        .btn-primary{background:#2563eb;color:white;}
-        .btn-primary:hover{background:#1d4ed8;}
-        .btn-success{background:#10b981;color:white;}
-        .btn-success:hover{background:#059669;}
-        .btn-warning{background:#f59e0b;color:white;}
+        .card-title{font-size:16px;font-weight:bold;color:#0f3460;margin-bottom:15px;display:flex;align-items:center;gap:10px;}
+        
+        .employee-profile{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+        .employee-profile .avatar{width:60px;height:60px;background:linear-gradient(135deg,#0f3460,#e94560);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;color:white;font-weight:bold;}
+        .employee-profile .info h3{color:#0f3460;font-size:18px;}
+        .employee-profile .info p{color:#6b7280;font-size:13px;}
+        
         .gps-status{padding:12px;border-radius:10px;margin:10px 0;font-weight:bold;}
         .online{background:#dcfce7;color:#166534;}
         .offline{background:#fee2e2;color:#991b1b;}
-        .ride{border-left:4px solid #2563eb;padding:16px;background:#f8fafc;border-radius:12px;margin-bottom:12px;}
-        .ride.active{border-left-color:#10b981;background:#f0fdf4;}
-        .debug{background:#1f2937;color:#10b981;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;max-height:150px;overflow-y:auto;}
         .coords{font-family:monospace;font-size:13px;color:#6b7280;padding:8px;background:#f1f5f9;border-radius:8px;margin-top:5px;}
-        .samsung-footer{text-align:center;padding:20px;color:#6b7280;font-size:11px;}
-        .samsung-footer strong{color:#1428A0;}
-        .employee-info{font-size:13px;color:#6b7280;margin-top:5px;}
+        
+        .ride{border-left:4px solid #0f3460;padding:16px;background:#f8fafc;border-radius:12px;margin-bottom:12px;}
+        .ride.active{border-left-color:#10b981;background:#f0fdf4;}
+        .ride.completed-ride{border-left-color:#6b7280;background:#f3f4f6;opacity:0.7;}
+        .ride .completed-badge{background:#10b981;color:white;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:bold;}
+        
+        .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.2s;}
+        .btn-primary{background:#0f3460;color:white;}
+        .btn-primary:hover{background:#16213e;}
+        .btn-success{background:#10b981;color:white;}
+        .btn-success:hover{background:#059669;}
+        .btn-warning{background:#f59e0b;color:white;}
+        .btn-danger{background:#e94560;color:white;}
+        .btn-danger:hover{background:#c73652;}
+        
+        .debug{background:#1f2937;color:#10b981;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;max-height:150px;overflow-y:auto;}
+        .company-footer{text-align:center;padding:20px;color:#6b7280;font-size:11px;}
+        .company-footer strong{color:#0f3460;}
+        .company-footer span{color:#e94560;}
+        
+        .no-rides{text-align:center;padding:30px 20px;color:#6b7280;}
+        .no-rides .icon{font-size:48px;margin-bottom:10px;}
+        
+        .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:16px 24px;border-radius:12px;color:white;font-weight:bold;z-index:9999;display:none;animation:slideUp 0.3s;}
+        .toast.success{background:#10b981;}
+        .toast.error{background:#e94560;}
+        .toast.info{background:#0f3460;}
+        @keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+        
+        <!-- Header -->
         <div class="header">
-            <h1>⭐ M Creations Good And Services</h1>
-            <div class="sub">Field Service Engineer — GPS Tracker</div>
+            <div>
+                <h1>🏢 M <span>Creations</span></h1>
+                <div class="sub">Field Engineer Dashboard</div>
+            </div>
+            <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
         </div>
         
-        <div class="card">
-            <h3 style="color:#1428A0;">👤 Select Your Name</h3>
-            <select id="employeeSelect" onchange="selectEmployee()">
-                <option value="">Choose your name</option>
-            </select>
-            <div id="welcome" style="margin-top:10px;text-align:center;color:#6b7280;">Select your name to start</div>
+        <!-- Employee Profile -->
+        <div class="card" id="profileCard">
+            <div class="employee-profile" id="employeeProfile">
+                <!-- Dynamically loaded -->
+            </div>
         </div>
         
-        <div class="card" id="gpsCard" style="display:none;">
-            <h3 style="color:#1428A0;">📍 GPS Status</h3>
-            <div id="gpsStatus" class="gps-status offline">⏳ Waiting for Samsung GPS...</div>
+        <!-- GPS Status -->
+        <div class="card" id="gpsCard">
+            <div class="card-title">📍 GPS Status</div>
+            <div id="gpsStatus" class="gps-status offline">⏳ Waiting for GPS...</div>
             <div id="gpsCoords" class="coords">Lat: --, Lng: --</div>
             <button class="btn btn-warning" onclick="testGPS()" style="margin-top:10px;">📡 Test GPS</button>
         </div>
         
+        <!-- Rides Container -->
         <div id="ridesContainer"></div>
         
+        <!-- Debug -->
         <div class="card">
-            <h4 style="color:#1428A0;">🔍 M Creations System Log</h4>
-            <div id="debugLog" class="debug">[M Creations Ready] Select your name...</div>
+            <div class="card-title">🔍 System Log</div>
+            <div id="debugLog" class="debug">[Ready] Loading...</div>
         </div>
         
-        <div class="samsung-footer">
-            <strong>⭐ M Creations Good And Services</strong> — Field Service Excellence
+        <div class="company-footer">
+            <strong>🏢 M <span>Creations</span> And Services</strong> — Field Service Excellence
         </div>
     </div>
     
     <script src="js/app.js"></script>
     <script>
-        let currentEmployee = null, activeRide = null, watchId = null;
-        let currentEmployeeData = null;
+        // ============================================
+        // AUTHENTICATION CHECK
+        // ============================================
+        
+        const loggedInEmployee = Storage.getLoggedInEmployee();
+        if (!loggedInEmployee) {
+            window.location.href = 'login.html';
+        }
+        
+        // ============================================
+        // MAIN APPLICATION
+        // ============================================
+        
+        let currentEmployee = loggedInEmployee;
+        let activeRide = null;
+        let watchId = null;
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 4000);
+        }
         
         function log(msg) {
             const d = document.getElementById('debugLog');
             d.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}\n${d.innerHTML}`;
-            console.log('[Samsung-Employee]', msg);
+            if (d.innerHTML.length > 3000) d.innerHTML = d.innerHTML.substring(0, 3000);
+            console.log('[M Creations]', msg);
         }
         
         function testGPS() {
-            if (!navigator.geolocation) { alert('❌ GPS not supported on this device'); return; }
+            if (!navigator.geolocation) { 
+                showToast('❌ GPS not supported on this device', 'error');
+                return; 
+            }
             navigator.geolocation.getCurrentPosition(
-                p => alert(`✅ Samsung GPS Working!\nLat: ${p.coords.latitude}\nLng: ${p.coords.longitude}\nAccuracy: ${Math.round(p.coords.accuracy)}m`),
-                e => alert(`❌ Samsung GPS Error: ${e.message}`)
+                p => {
+                    showToast(`✅ GPS Working! Lat: ${p.coords.latitude.toFixed(4)}, Lng: ${p.coords.longitude.toFixed(4)}`, 'success');
+                },
+                e => {
+                    showToast(`❌ GPS Error: ${e.message}`, 'error');
+                }
             );
         }
         
-        function loadEmployees() {
-            const employees = Storage.getEmployees();
-            const select = document.getElementById('employeeSelect');
-            select.innerHTML = '<option value="">Choose your name</option>';
-            employees.forEach(emp => select.innerHTML += `<option value="${emp.id}">${emp.name} (${emp.contact || 'N/A'})</option>`);
-            log('✅ Samsung employees loaded');
-        }
-        
-        function selectEmployee() {
-            currentEmployee = document.getElementById('employeeSelect').value;
-            if (currentEmployee) {
-                const emp = Storage.getEmployees().find(e => e.id === currentEmployee);
-                currentEmployeeData = emp;
-                document.getElementById('welcome').innerHTML = `
-                    ✅ Welcome, <strong>${emp?.name}</strong>! 
-                    <div class="employee-info">📱 Contact: ${emp?.contact || 'N/A'}</div>
-                    <div class="employee-info">🆔 ID: ${emp?.id}</div>
-                    Samsung Service Ready.
-                `;
-                document.getElementById('gpsCard').style.display = 'block';
-                loadRides();
-                startGPS();
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                Storage.logoutEmployee();
+                window.location.href = 'login.html';
             }
         }
         
+        function loadProfile() {
+            const container = document.getElementById('employeeProfile');
+            const emp = currentEmployee;
+            const initial = emp.name.charAt(0).toUpperCase();
+            
+            container.innerHTML = `
+                <div class="avatar">${initial}</div>
+                <div class="info">
+                    <h3>${emp.name}</h3>
+                    <p>📱 ${emp.contact || 'N/A'} · 🆔 ${emp.id}</p>
+                    <p style="font-size:12px;color:#10b981;">✅ Logged in</p>
+                </div>
+            `;
+        }
+        
         function startGPS() {
-            if (!navigator.geolocation) { document.getElementById('gpsStatus').innerHTML = '❌ GPS not supported'; return; }
+            if (!navigator.geolocation) {
+                document.getElementById('gpsStatus').innerHTML = '❌ GPS not supported';
+                return;
+            }
             if (watchId) navigator.geolocation.clearWatch(watchId);
             
             watchId = navigator.geolocation.watchPosition(
                 (pos) => {
                     const lat = pos.coords.latitude, lng = pos.coords.longitude;
-                    document.getElementById('gpsStatus').innerHTML = `✅ M Creations GPS Active (${Math.round(pos.coords.accuracy)}m)`;
+                    document.getElementById('gpsStatus').innerHTML = `✅ GPS Active (${Math.round(pos.coords.accuracy)}m)`;
                     document.getElementById('gpsStatus').className = 'gps-status online';
                     document.getElementById('gpsCoords').innerHTML = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
-                    log(`📍 M Creations GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+                    log(`📍 GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
                     
                     if (activeRide && activeRide.status === 'in_progress') {
                         Storage.updateLiveLocation(activeRide.id, lat, lng);
-                        log(`💾 M Creations location saved for ${activeRide.id}`);
+                        log(`💾 Location saved for ${activeRide.id}`);
                     }
                 },
                 (err) => {
-                    document.getElementById('gpsStatus').innerHTML = `❌ Samsung GPS Error: ${err.message}`;
+                    document.getElementById('gpsStatus').innerHTML = `❌ GPS Error: ${err.message}`;
                     document.getElementById('gpsStatus').className = 'gps-status offline';
-                    log(`❌ M Creations GPS Error: ${err.message}`);
+                    log(`❌ GPS Error: ${err.message}`);
                 },
                 { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
             );
         }
         
+        // ============================================
+        // ✅ FIXED: Load Rides with Proper Status
+        // ============================================
+        
         function loadRides() {
             if (!currentEmployee) return;
-            const rides = Storage.getRides();
-            const assigned = rides.filter(r => r.employeeId === currentEmployee && r.status !== 'completed');
+            const allRides = Storage.getRides();
+            const assigned = allRides.filter(r => r.employeeId === currentEmployee.id && r.status !== 'completed');
+            const completedRides = allRides.filter(r => r.employeeId === currentEmployee.id && r.status === 'completed');
+            
             const container = document.getElementById('ridesContainer');
             
-            if (assigned.length === 0) {
-                container.innerHTML = '<div class="card"><p style="text-align:center;color:#6b7280;">✨ No Samsung services assigned</p></div>';
-                return;
+            // Check if there's an active ride
+            const activeRideData = assigned.find(r => r.status === 'in_progress');
+            if (activeRideData) {
+                activeRide = activeRideData;
             }
             
-            container.innerHTML = '<h3 style="color:#1428A0;margin-bottom:15px;">📋 Samsung Services</h3>';
-            assigned.forEach(ride => {
-                const isActive = ride.status === 'in_progress';
-                container.innerHTML += `
-                    <div class="ride ${isActive ? 'active' : ''}">
-                        <strong style="color:#1428A0;">${ride.id}</strong> — ${ride.customerName}
-                        <div style="font-size:13px;color:#6b7280;">📍 ${ride.customerAddress}</div>
-                        <div style="font-size:12px;color:#6b7280;">📱 Customer: ${ride.customerMobile}</div>
-                        ${ride.status === 'assigned' ?
-                            `<button class="btn btn-primary" onclick="startRide('${ride.id}')" style="margin-top:10px;">▶ Start Samsung Service</button>` :
-                            `<button class="btn btn-success" onclick="endRide()" style="margin-top:10px;">✅ Complete Service</button>`
-                        }
-                        <div style="font-size:11px;color:#6b7280;margin-top:5px;word-break:break-all;">🔗 Samsung Tracking: ${ride.trackingLink}</div>
+            let html = '';
+            
+            // Show active/assigned rides
+            if (assigned.length > 0) {
+                html += '<div class="card"><div class="card-title">📋 Your Services</div>';
+                assigned.forEach(ride => {
+                    const isActive = ride.status === 'in_progress';
+                    html += `
+                        <div class="ride ${isActive ? 'active' : ''}">
+                            <strong style="color:#0f3460;">${ride.id}</strong> — ${ride.customerName}
+                            ${isActive ? ' <span style="color:#10b981;font-size:12px;">● LIVE</span>' : ''}
+                            <div style="font-size:13px;color:#6b7280;">📍 ${ride.customerAddress}</div>
+                            <div style="font-size:12px;color:#6b7280;">📱 Customer: ${ride.customerMobile}</div>
+                            ${isActive ? 
+                                `<button class="btn btn-success" onclick="completeRide('${ride.id}')" style="margin-top:10px;">✅ Complete Service</button>` :
+                                `<button class="btn btn-primary" onclick="startRide('${ride.id}')" style="margin-top:10px;">▶ Start Service</button>`
+                            }
+                            <div style="font-size:11px;color:#6b7280;margin-top:5px;word-break:break-all;">🔗 Tracking: ${ride.trackingLink}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            // Show completed rides
+            if (completedRides.length > 0) {
+                html += '<div class="card"><div class="card-title">✅ Completed Services</div>';
+                completedRides.slice(-5).reverse().forEach(ride => {
+                    html += `
+                        <div class="ride completed-ride">
+                            <strong style="color:#6b7280;">${ride.id}</strong> — ${ride.customerName}
+                            <span class="completed-badge">✅ Done</span>
+                            <div style="font-size:12px;color:#6b7280;">📍 ${ride.customerAddress}</div>
+                            <div style="font-size:11px;color:#6b7280;">⏱ ${ride.duration || 'N/A'} min · 📏 ${ride.totalDistance || 0} KM</div>
+                            <div style="font-size:11px;color:#6b7280;">✅ Completed: ${ride.endTime ? new Date(ride.endTime).toLocaleString() : 'N/A'}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            if (assigned.length === 0 && completedRides.length === 0) {
+                html = `
+                    <div class="card">
+                        <div class="no-rides">
+                            <div class="icon">📭</div>
+                            <p style="font-weight:600;color:#0f3460;">No Services</p>
+                            <p style="font-size:13px;">Check back later for new assignments</p>
+                        </div>
                     </div>
                 `;
-            });
+            }
+            
+            container.innerHTML = html;
         }
         
+        // ============================================
+        // ✅ FIXED: Start Ride
+        // ============================================
+        
         function startRide(rideId) {
-            log(`▶ Starting Samsung service: ${rideId}`);
+            log(`▶ Starting service: ${rideId}`);
             const rides = Storage.getRides();
             const index = rides.findIndex(r => r.id === rideId);
-            if (index === -1) return;
+            if (index === -1) {
+                showToast('❌ Ride not found!', 'error');
+                return;
+            }
             
             rides[index].status = 'in_progress';
             rides[index].startTime = new Date().toISOString();
             Storage.saveRides(rides);
             activeRide = rides[index];
             
+            // Send initial location
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
                     Storage.updateLiveLocation(rideId, pos.coords.latitude, pos.coords.longitude);
-                    log(`✅ M Creations initial location sent`);
+                    log(`✅ Initial location sent`);
                 }, () => {});
             }
             
             loadRides();
-            alert(`✅ M Creations Service Started!\n📍 GPS Active\n\nCustomer Tracking: ${activeRide.trackingLink}`);
+            showToast(`✅ Service Started!\n📍 GPS Active`, 'success');
         }
         
-        function endRide() {
-            if (!confirm('Complete this Samsung service?')) return;
+        // ============================================
+        // ✅ FIXED: Complete Ride (End Ride)
+        // ============================================
+        
+        function completeRide(rideId) {
+            if (!confirm('✅ Complete this service?')) return;
+            
+            log(`🏁 Completing service: ${rideId}`);
+            
             const rides = Storage.getRides();
-            const index = rides.findIndex(r => r.id === activeRide.id);
-            if (index !== -1) {
-                rides[index].status = 'completed';
-                rides[index].endTime = new Date().toISOString();
-                const dur = (new Date(rides[index].endTime) - new Date(rides[index].startTime)) / 1000 / 60;
-                rides[index].duration = Math.round(dur);
-                Storage.saveRides(rides);
+            const index = rides.findIndex(r => r.id === rideId);
+            
+            if (index === -1) {
+                showToast('❌ Ride not found!', 'error');
+                return;
             }
+            
+            const ride = rides[index];
+            
+            // ✅ Calculate duration
+            const endTime = new Date();
+            const startTime = new Date(ride.startTime);
+            const durationMinutes = Math.round((endTime - startTime) / 1000 / 60);
+            
+            // ✅ Calculate KM from GPS locations
+            const locations = Storage.getLiveLocations();
+            const rideLocations = [];
+            for (const key in locations) {
+                if (key === rideId) {
+                    rideLocations.push(locations[key]);
+                }
+            }
+            
+            let totalKM = 0;
+            if (rideLocations.length > 1) {
+                rideLocations.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                for (let i = 1; i < rideLocations.length; i++) {
+                    const prev = rideLocations[i - 1];
+                    const curr = rideLocations[i];
+                    const dist = Storage.calculateDistance(prev.lat, prev.lng, curr.lat, curr.lng);
+                    totalKM += dist;
+                }
+                totalKM = Math.round(totalKM * 100) / 100;
+            }
+            
+            // ✅ Update ride status
+            rides[index].status = 'completed';
+            rides[index].endTime = endTime.toISOString();
+            rides[index].duration = durationMinutes;
+            rides[index].totalDistance = totalKM;
+            rides[index].stops = rideLocations.length;
+            
+            Storage.saveRides(rides);
+            
+            // ✅ Clear active ride
             activeRide = null;
+            
+            // ✅ Stop GPS if no more active rides
+            const remainingActive = rides.filter(r => r.employeeId === currentEmployee.id && r.status === 'in_progress');
+            if (remainingActive.length === 0 && watchId) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                document.getElementById('gpsStatus').innerHTML = '⏳ GPS paused - No active rides';
+                document.getElementById('gpsStatus').className = 'gps-status offline';
+            }
+            
             loadRides();
-            alert('✅ M Creations Service Completed!\nThank you for choosing M Creations.');
+            showToast(`✅ Service Completed!\n⏱ ${durationMinutes} min · 📏 ${totalKM} KM`, 'success');
+            log(`✅ Ride ${rideId} completed. Duration: ${durationMinutes}min, KM: ${totalKM}`);
         }
         
-        setInterval(() => { if (currentEmployee) loadRides(); }, 5000);
-        loadEmployees();
-        log('🚀 M Creations Employee System Ready');
+        // ============================================
+        // INITIALIZE
+        // ============================================
+        
+        log(`🚀 Welcome ${currentEmployee.name}!`);
+        loadProfile();
+        loadRides();
+        startGPS();
+        
+        // Auto-refresh rides every 5 seconds
+        setInterval(() => {
+            if (currentEmployee) loadRides();
+        }, 5000);
+        
+        // Check session validity
+        setInterval(() => {
+            if (!Storage.getLoggedInEmployee()) {
+                window.location.href = 'login.html';
+            }
+        }, 60000);
     </script>
 </body>
 </html>

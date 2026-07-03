@@ -13,10 +13,13 @@
             --primary-light: #16213e;
             --accent: #e94560;
             --gray: #6b7280;
+            --success: #10b981;
+            --warning: #f59e0b;
         }
         
         .container{max-width:1400px;margin:0 auto;padding:20px;}
         
+        /* Header */
         .header{background:linear-gradient(135deg, #0f3460 0%, #16213e 100%);color:white;padding:20px 30px;border-radius:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
         .header h1{font-size:24px;display:flex;align-items:center;gap:10px;}
         .header h1 span{color:#e94560;}
@@ -24,23 +27,31 @@
         .live-indicator{background:#e94560;color:white;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:600;animation:pulse 1.5s infinite;}
         @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
         
-        .btn{padding:10px 20px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.2s;}
+        /* Buttons */
+        .btn{padding:10px 20px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;}
         .btn-primary{background:#0f3460;color:white;}
-        .btn-primary:hover{background:#16213e;}
+        .btn-primary:hover{background:#16213e;transform:translateY(-1px);}
         .btn-success{background:#10b981;color:white;}
-        .btn-success:hover{background:#059669;}
+        .btn-success:hover{background:#059669;transform:translateY(-1px);}
         .btn-danger{background:#e94560;color:white;}
-        .btn-danger:hover{background:#c73652;}
+        .btn-danger:hover{background:#c73652;transform:translateY(-1px);}
         .btn-secondary{background:#e5e7eb;color:#1f2937;}
-        .btn-secondary:hover{background:#d1d5db;}
+        .btn-secondary:hover{background:#d1d5db;transform:translateY(-1px);}
+        .btn-warning{background:#f59e0b;color:white;}
+        .btn-warning:hover{background:#d97706;transform:translateY(-1px);}
         .btn-word{background:#2b5797;color:white;}
-        .btn-word:hover{background:#1a3a6a;}
+        .btn-word:hover{background:#1a3a6a;transform:translateY(-1px);}
         
+        /* Stats */
         .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px;}
-        .stat-card{background:white;padding:18px;border-radius:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-top:3px solid #0f3460;}
+        .stat-card{background:white;padding:18px;border-radius:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-top:3px solid #0f3460;transition:0.2s;}
+        .stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
         .stat-card .label{font-size:12px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
         .stat-card .value{font-size:28px;font-weight:bold;color:#0f3460;margin-top:5px;}
+        .stat-card .value.accent{color:#e94560;}
+        .stat-card .value.success{color:#10b981;}
         
+        /* Map */
         .map-container{background:white;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
         .map-wrapper{height:400px;background:#e5e7eb;border-radius:12px;position:relative;overflow:hidden;}
         #mapCanvas{width:100%;height:100%;position:relative;}
@@ -53,10 +64,12 @@
         
         .map-controls{display:flex;gap:12px;margin-top:15px;flex-wrap:wrap;align-items:center;}
         
+        /* Cards */
         .card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
         .card-title{font-size:16px;font-weight:bold;color:#0f3460;margin-bottom:15px;display:flex;align-items:center;gap:10px;}
         .card-title span{color:#e94560;}
         
+        /* Employee Table */
         .employee-table{width:100%;border-collapse:collapse;font-size:14px;}
         .employee-table th{background:#f8fafc;padding:12px;text-align:left;font-weight:600;color:#0f3460;border-bottom:2px solid #e5e7eb;}
         .employee-table td{padding:12px;border-bottom:1px solid #f3f4f6;}
@@ -65,6 +78,7 @@
         .status-available{background:#dcfce7;color:#16a34a;}
         .status-busy{background:#fef3c7;color:#d97706;}
         
+        /* Ride Items */
         .ride-item{display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f3f4f6;align-items:center;}
         .ride-item:hover{background:#f8fafc;}
         .status-badge{padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;}
@@ -72,29 +86,60 @@
         .status-assigned{background:#fef3c7;color:#d97706;}
         .status-completed{background:#e5e7eb;color:#6b7280;}
         
+        /* Filter */
         .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
         .filter-btn{padding:8px 18px;border:1px solid #e5e7eb;background:white;border-radius:20px;cursor:pointer;font-size:12px;transition:0.2s;}
         .filter-btn:hover{background:#f3f4f6;}
         .filter-btn.active{background:#0f3460;color:white;border-color:#0f3460;}
         
-        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;}
-        .modal-content{background:white;padding:30px;border-radius:16px;width:500px;max-width:90%;max-height:90vh;overflow-y:auto;}
+        /* Modal */
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;animation:fadeIn 0.3s;}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+        .modal-content{background:white;padding:30px;border-radius:16px;width:500px;max-width:90%;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s;}
+        @keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
         .modal-content h3{margin-bottom:15px;color:#0f3460;}
-        .modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:12px;margin:10px 0;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;}
-        .modal-content input:focus,.modal-content select:focus,.modal-content textarea:focus{outline:2px solid #0f3460;}
+        .modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:12px;margin:10px 0;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;transition:0.2s;}
+        .modal-content input:focus,.modal-content select:focus,.modal-content textarea:focus{outline:2px solid #0f3460;border-color:#0f3460;}
         
+        /* Forms */
+        .add-employee-form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;}
+        .add-employee-form input{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;min-width:150px;transition:0.2s;}
+        .add-employee-form input:focus{outline:2px solid #0f3460;border-color:#0f3460;}
+        
+        .password-section{background:#f8fafc;padding:16px;border-radius:12px;margin-top:10px;border:1px solid #e5e7eb;}
+        .password-section .flex-row{display:flex;gap:10px;flex-wrap:wrap;}
+        .password-section select,.password-section input{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;min-width:120px;}
+        .password-section select:focus,.password-section input:focus{outline:2px solid #0f3460;}
+        .password-message{padding:10px 14px;border-radius:8px;margin-top:10px;display:none;font-size:13px;font-weight:500;}
+        .password-message.success{background:#dcfce7;color:#166534;display:block;}
+        .password-message.error{background:#fee2e2;color:#991b1b;display:block;}
+        
+        /* Debug */
         .debug{background:#1f2937;color:#10b981;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;max-height:150px;overflow-y:auto;}
+        .debug::-webkit-scrollbar{width:4px;}
+        .debug::-webkit-scrollbar-thumb{background:#10b981;border-radius:4px;}
+        
+        /* Format Grid */
         .format-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0;}
         
+        /* Footer */
         .company-footer{text-align:center;padding:20px;color:#6b7280;font-size:12px;border-top:1px solid #e5e7eb;margin-top:20px;}
         .company-footer strong{color:#0f3460;}
         .company-footer span{color:#e94560;}
         
-        .add-employee-form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;}
-        .add-employee-form input{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;min-width:150px;}
-        .add-employee-form input:focus{outline:2px solid #0f3460;}
-        
-        @media (max-width:768px){.stats-grid{grid-template-columns:repeat(3,1fr);} .map-wrapper{height:300px;}}
+        /* Responsive */
+        @media (max-width:768px){
+            .stats-grid{grid-template-columns:repeat(3,1fr);}
+            .map-wrapper{height:300px;}
+            .header{flex-direction:column;text-align:center;}
+            .add-employee-form{flex-direction:column;}
+            .password-section .flex-row{flex-direction:column;}
+        }
+        @media (max-width:480px){
+            .stats-grid{grid-template-columns:repeat(2,1fr);}
+            .format-grid{grid-template-columns:1fr;}
+            .modal-content{padding:20px;}
+        }
     </style>
 </head>
 <body>
@@ -106,24 +151,24 @@
                 <div class="subtitle">Field Service & Delivery Tracking System</div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <button class="btn btn-primary" onclick="showCreateForm()">+ New Request</button>
-                <button class="btn btn-success" onclick="showReportModal()">📊 Export Report</button>
-                <button class="btn btn-secondary" onclick="showEmployeeModal()">👥 Manage Employees</button>
+                <button class="btn btn-primary" onclick="showCreateForm()">➕ New Request</button>
+                <button class="btn btn-success" onclick="showReportModal()">📊 Export</button>
+                <button class="btn btn-secondary" onclick="scrollToEmployees()">👥 Employees</button>
             </div>
         </div>
         
         <!-- Stats -->
         <div class="stats-grid">
-            <div class="stat-card"><div class="label">Active Rides</div><div class="value" id="activeCount">0</div></div>
-            <div class="stat-card"><div class="label">Live Tracking</div><div class="value" id="liveCount">0</div></div>
-            <div class="stat-card"><div class="label">Online Employees</div><div class="value" id="onlineCount">0</div></div>
+            <div class="stat-card"><div class="label">Active Rides</div><div class="value accent" id="activeCount">0</div></div>
+            <div class="stat-card"><div class="label">Live Tracking</div><div class="value success" id="liveCount">0</div></div>
+            <div class="stat-card"><div class="label">Online Employees</div><div class="value success" id="onlineCount">0</div></div>
             <div class="stat-card"><div class="label">Total Employees</div><div class="value" id="totalEmployees">0</div></div>
             <div class="stat-card"><div class="label">Total Services</div><div class="value" id="totalCount">0</div></div>
         </div>
         
         <!-- Live Map -->
         <div class="map-container">
-            <div class="card-title">📍 Live Employee Tracking</div>
+            <div class="card-title">📍 Live Employee Tracking <span class="live-indicator" style="font-size:10px;padding:2px 10px;">● LIVE</span></div>
             <div class="map-wrapper" id="mapWrapper">
                 <div id="mapCanvas"></div>
             </div>
@@ -135,17 +180,32 @@
         </div>
         
         <!-- Employee Management Section -->
-        <div class="card">
-            <div class="card-title">👥 Employee Management <span style="font-size:12px;color:#6b7280;font-weight:normal;">Add or remove employees</span></div>
+        <div id="employeeSection" class="card">
+            <div class="card-title">👥 Employee Management <span style="font-size:12px;color:#6b7280;font-weight:normal;">Add, remove, or manage passwords</span></div>
             
-            <!-- Add Employee Form with Contact Number -->
+            <!-- Add Employee Form -->
             <div class="add-employee-form">
                 <input type="text" id="newEmployeeName" placeholder="Employee Name" style="flex:2;">
                 <input type="tel" id="newEmployeeContact" placeholder="Contact Number" style="flex:1;">
-                <button class="btn btn-success" onclick="addEmployee()">+ Add Employee</button>
+                <button class="btn btn-success" onclick="addEmployee()">➕ Add Employee</button>
             </div>
             
-            <div style="overflow-x:auto;">
+            <!-- Password Management -->
+            <div class="password-section">
+                <div style="font-weight:600;color:#0f3460;margin-bottom:10px;">🔑 Password Management</div>
+                <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">Reset employee passwords. Default password: <strong>name + "123"</strong> (e.g., emp123)</p>
+                <div class="flex-row">
+                    <select id="passwordEmployeeSelect">
+                        <option value="">Select Employee</option>
+                    </select>
+                    <input type="text" id="newPasswordInput" placeholder="New Password (min 4 chars)">
+                    <button class="btn btn-warning" onclick="resetPassword()">🔄 Reset Password</button>
+                </div>
+                <div id="passwordMessage" class="password-message"></div>
+            </div>
+            
+            <!-- Employee Table -->
+            <div style="overflow-x:auto;margin-top:15px;">
                 <table class="employee-table" id="employeeTable">
                     <thead>
                         <tr>
@@ -194,9 +254,9 @@
                 <input type="text" id="customerName" placeholder="Customer Name" required>
                 <input type="tel" id="customerMobile" placeholder="Mobile Number" required>
                 <textarea id="customerAddress" placeholder="Customer Address" rows="3" required></textarea>
-                <select id="employeeId" required><option value="">Select Employee</option></select>
+                <select id="employeeId" required><option value="">Select Field Engineer</option></select>
                 <div style="display:flex;gap:10px;margin-top:15px;">
-                    <button type="submit" class="btn btn-primary" style="flex:1;">Create</button>
+                    <button type="submit" class="btn btn-primary" style="flex:1;">✅ Create</button>
                     <button type="button" onclick="closeModal('createModal')" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:10px;cursor:pointer;">Cancel</button>
                 </div>
             </form>
@@ -207,7 +267,7 @@
     <div id="reportModal" class="modal" style="display:none;">
         <div class="modal-content">
             <h3>📊 Export Report</h3>
-            <p style="color:#6b7280;font-size:13px;">Select period and format</p>
+            <p style="color:#6b7280;font-size:13px;margin-bottom:10px;">Select period and format</p>
             <select id="reportPeriod" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;margin:10px 0;">
                 <option value="daily">📅 Daily (Today)</option>
                 <option value="weekly">📊 Weekly (7 Days)</option>
@@ -232,6 +292,7 @@
         function log(msg) {
             const d = document.getElementById('debugLog');
             d.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}\n${d.innerHTML}`;
+            if (d.innerHTML.length > 3000) d.innerHTML = d.innerHTML.substring(0, 3000);
             console.log('[M Creations]', msg);
         }
         
@@ -242,7 +303,9 @@
             updateStats();
             renderRides();
             renderEmployees();
+            loadPasswordEmployees();
             
+            // Auto-refresh locations
             setInterval(() => {
                 const newLoc = Storage.getLiveLocations();
                 if (JSON.stringify(newLoc) !== JSON.stringify(liveLocations)) {
@@ -253,6 +316,17 @@
                     document.getElementById('lastUpdate').textContent = 'Just now';
                 }
             }, 2000);
+            
+            // Auto-refresh rides
+            setInterval(() => {
+                const newRides = Storage.getRides();
+                if (newRides.length !== rides.length) {
+                    loadData();
+                    renderRides();
+                    updateStats();
+                    renderEmployees();
+                }
+            }, 5000);
             
             window.addEventListener('locationUpdate', () => {
                 liveLocations = Storage.getLiveLocations();
@@ -269,7 +343,7 @@
         }
         
         // ============================================
-        // EMPLOYEE MANAGEMENT WITH CONTACT
+        // EMPLOYEE MANAGEMENT
         // ============================================
         
         function renderEmployees() {
@@ -335,10 +409,11 @@
             renderEmployees();
             renderRides();
             updateStats();
+            loadPasswordEmployees();
             nameInput.value = '';
             contactInput.value = '';
-            log(`✅ Employee added: ${newEmp.name} (${newEmp.id}) - Contact: ${newEmp.contact}`);
-            alert(`✅ Employee "${newEmp.name}" added successfully!\n📱 Contact: ${newEmp.contact}`);
+            log(`✅ Employee added: ${newEmp.name} (${newEmp.id})`);
+            alert(`✅ Employee "${newEmp.name}" added successfully!\n📱 Contact: ${newEmp.contact}\n🔑 Default Password: ${name.toLowerCase()}123`);
         }
         
         function deleteEmployee(employeeId) {
@@ -352,14 +427,63 @@
                 renderEmployees();
                 renderRides();
                 updateStats();
+                loadPasswordEmployees();
                 log(`🗑️ Employee deleted: ${emp.name}`);
                 alert(`✅ Employee "${emp.name}" deleted successfully!`);
             }
         }
         
-        function showEmployeeModal() {
-            document.getElementById('employeeTable').scrollIntoView({ behavior: 'smooth' });
+        function scrollToEmployees() {
+            document.getElementById('employeeSection').scrollIntoView({ behavior: 'smooth' });
             document.getElementById('newEmployeeName').focus();
+        }
+        
+        // ============================================
+        // PASSWORD MANAGEMENT
+        // ============================================
+        
+        function loadPasswordEmployees() {
+            const select = document.getElementById('passwordEmployeeSelect');
+            if (!select) return;
+            const emps = Storage.getEmployees();
+            select.innerHTML = '<option value="">Select Employee</option>';
+            emps.forEach(emp => {
+                select.innerHTML += `<option value="${emp.id}">${emp.name} (${emp.id})</option>`;
+            });
+        }
+        
+        function resetPassword() {
+            const select = document.getElementById('passwordEmployeeSelect');
+            const empId = select.value;
+            const newPassword = document.getElementById('newPasswordInput').value.trim();
+            const msgDiv = document.getElementById('passwordMessage');
+            
+            if (!empId) {
+                msgDiv.className = 'password-message error';
+                msgDiv.textContent = '❌ Please select an employee';
+                return;
+            }
+            
+            if (!newPassword || newPassword.length < 4) {
+                msgDiv.className = 'password-message error';
+                msgDiv.textContent = '❌ Password must be at least 4 characters';
+                return;
+            }
+            
+            if (Storage.updateEmployeePassword(empId, newPassword)) {
+                const emp = Storage.getEmployeeById(empId);
+                msgDiv.className = 'password-message success';
+                msgDiv.textContent = `✅ Password updated for ${emp.name}. New password: "${newPassword}"`;
+                document.getElementById('newPasswordInput').value = '';
+                log(`🔑 Password reset for ${emp.name}`);
+                setTimeout(() => {
+                    msgDiv.className = 'password-message';
+                    msgDiv.textContent = '';
+                }, 5000);
+            } else {
+                msgDiv.className = 'password-message error';
+                msgDiv.textContent = '❌ Failed to update password';
+            }
         }
         
         // ============================================
@@ -383,7 +507,7 @@
             if (activeRides.length === 0) {
                 container.innerHTML += `
                     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#6b7280;">
-                        <div style="font-size:48px;">📍</div>
+                        <div style="font-size:48px;margin-bottom:10px;">📍</div>
                         <p style="font-weight:600;color:#0f3460;">No Active Services</p>
                         <p style="font-size:13px;">Start a ride to track live location</p>
                     </div>
@@ -402,6 +526,10 @@
                     y = ((38 - loc.lat) / 30) * 100;
                     x = Math.max(5, Math.min(95, x));
                     y = Math.max(5, Math.min(95, y));
+                } else {
+                    const hash = ride.id.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
+                    x = 20 + (hash % 60);
+                    y = 20 + ((hash * 7) % 60);
                 }
                 
                 const marker = document.createElement('div');
@@ -486,9 +614,14 @@
                             <strong style="color:#0f3460;">${ride.id}</strong>
                             <span class="status-badge ${cls}">${txt}</span>
                             ${isLive ? ' ●' : ''}
-                            <div style="font-size:13px;color:#6b7280;">${ride.customerName} → ${emp?.name || 'Unassigned'} ${ride.totalDistance ? `| 📏 ${ride.totalDistance}KM` : ''}</div>
+                            <div style="font-size:13px;color:#6b7280;margin-top:2px;">
+                                ${ride.customerName} → ${emp?.name || 'Unassigned'} 
+                                ${ride.totalDistance ? `| 📏 ${ride.totalDistance}KM` : ''}
+                            </div>
                         </div>
-                        <div style="font-size:12px;color:#6b7280;">${isLive ? '📍 Live' : new Date(ride.createdAt).toLocaleTimeString()}</div>
+                        <div style="font-size:12px;color:#6b7280;">
+                            ${isLive ? '📍 Live' : new Date(ride.createdAt).toLocaleTimeString()}
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -512,8 +645,13 @@
             document.getElementById('createModal').style.display = 'flex';
         }
         
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function showReportModal() { document.getElementById('reportModal').style.display = 'flex'; }
+        function closeModal(id) { 
+            document.getElementById(id).style.display = 'none'; 
+        }
+        
+        function showReportModal() { 
+            document.getElementById('reportModal').style.display = 'flex'; 
+        }
         
         document.getElementById('requestForm')?.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -719,6 +857,10 @@
             closeModal('reportModal');
             alert(`✅ M Creations Report Exported!`);
         }
+        
+        // ============================================
+        // INITIALIZE
+        // ============================================
         
         window.onload = init;
     </script>
