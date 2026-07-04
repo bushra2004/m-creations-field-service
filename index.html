@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M Creations - Field Service Tracker</title>
+    <title>M Creations - Field Service</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);min-height:100vh;}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0f3460 0%,#16213e 50%,#1a1a2e 100%);min-height:100vh;}
         .container{max-width:1200px;margin:0 auto;padding:20px;}
         .landing-card{background:white;border-radius:24px;padding:50px 30px;text-align:center;max-width:900px;margin:50px auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
         .company-logo{font-size:48px;color:#0f3460;margin-bottom:10px;}
@@ -20,8 +20,10 @@
         .role-card .icon{font-size:52px;margin-bottom:16px;}
         .role-card h3{font-size:20px;color:#0f3460;}
         .role-card p{color:#6b7280;font-size:14px;}
-        .live-badge{display:inline-block;background:#e94560;color:white;padding:4px 12px;border-radius:20px;font-size:12px;margin-top:10px;animation:pulse 2s infinite;}
-        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+        .role-card .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px;}
+        .badge-login{background:#0f3460;color:white;}
+        .badge-admin{background:#e94560;color:white;}
+        .badge-track{background:#10b981;color:white;}
         .status-bar{background:#f1f5f9;padding:12px;border-radius:12px;font-size:14px;color:#64748b;}
         .company-footer{text-align:center;padding:20px;color:white;font-size:12px;opacity:0.8;}
         .company-footer strong{color:white;}
@@ -32,27 +34,27 @@
     <div class="container">
         <div class="landing-card">
             <div class="company-logo">🏢 <span>✦</span></div>
-            <h1>M <span>Creations</span> And Services</h1>
+            <h1>M <span>Creations</span></h1>
             <p class="subtitle">Field Service & Delivery Tracking System</p>
             
             <div class="role-grid">
-                <a href="admin.html" class="role-card">
+                <a href="admin-login.html" class="role-card">
                     <div class="icon">👑</div>
                     <h3>Admin Dashboard</h3>
-                    <p>Manage services, employees, and reports</p>
-                    <span class="live-badge">🔴 LIVE</span>
+                    <p>Manage employees, services, and view reports</p>
+                    <span class="badge badge-admin">🔐 Secure Login</span>
                 </a>
-                <a href="employee.html" class="role-card">
+                <a href="login.html" class="role-card">
                     <div class="icon">👷</div>
-                    <h3>Field Engineer Portal</h3>
-                    <p>Share GPS location while on duty</p>
-                    <span class="live-badge">🔴 LIVE</span>
+                    <h3>Employee Login</h3>
+                    <p>Login to view and manage your assigned services</p>
+                    <span class="badge badge-login">🔐 Secure Login</span>
                 </a>
                 <a href="tracking.html" class="role-card">
                     <div class="icon">📍</div>
                     <h3>Customer Tracking</h3>
                     <p>Track your service in real-time</p>
-                    <span class="live-badge">🔴 LIVE</span>
+                    <span class="badge badge-track">🟢 LIVE</span>
                 </a>
             </div>
             
@@ -60,7 +62,7 @@
         </div>
         
         <div class="company-footer">
-            <strong>🏢 M <span>Creations</span> And Services</strong> — Field Service Excellence © 2026
+            <strong>🏢 M <span>Creations</span></strong> — Field Service Excellence © 2026
         </div>
     </div>
 </body>

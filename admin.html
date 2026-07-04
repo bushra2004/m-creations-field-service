@@ -19,7 +19,6 @@
         
         .container{max-width:1400px;margin:0 auto;padding:20px;}
         
-        /* Header */
         .header{background:linear-gradient(135deg, #0f3460 0%, #16213e 100%);color:white;padding:20px 30px;border-radius:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
         .header h1{font-size:24px;display:flex;align-items:center;gap:10px;}
         .header h1 span{color:#e94560;}
@@ -27,7 +26,6 @@
         .live-indicator{background:#e94560;color:white;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:600;animation:pulse 1.5s infinite;}
         @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
         
-        /* Buttons */
         .btn{padding:10px 20px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;}
         .btn-primary{background:#0f3460;color:white;}
         .btn-primary:hover{background:#16213e;transform:translateY(-1px);}
@@ -42,7 +40,6 @@
         .btn-word{background:#2b5797;color:white;}
         .btn-word:hover{background:#1a3a6a;transform:translateY(-1px);}
         
-        /* Stats */
         .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px;}
         .stat-card{background:white;padding:18px;border-radius:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-top:3px solid #0f3460;transition:0.2s;}
         .stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
@@ -51,7 +48,6 @@
         .stat-card .value.accent{color:#e94560;}
         .stat-card .value.success{color:#10b981;}
         
-        /* Map */
         .map-container{background:white;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
         .map-wrapper{height:400px;background:#e5e7eb;border-radius:12px;position:relative;overflow:hidden;}
         #mapCanvas{width:100%;height:100%;position:relative;}
@@ -64,12 +60,10 @@
         
         .map-controls{display:flex;gap:12px;margin-top:15px;flex-wrap:wrap;align-items:center;}
         
-        /* Cards */
         .card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
         .card-title{font-size:16px;font-weight:bold;color:#0f3460;margin-bottom:15px;display:flex;align-items:center;gap:10px;}
         .card-title span{color:#e94560;}
         
-        /* Employee Table */
         .employee-table{width:100%;border-collapse:collapse;font-size:14px;}
         .employee-table th{background:#f8fafc;padding:12px;text-align:left;font-weight:600;color:#0f3460;border-bottom:2px solid #e5e7eb;}
         .employee-table td{padding:12px;border-bottom:1px solid #f3f4f6;}
@@ -78,7 +72,6 @@
         .status-available{background:#dcfce7;color:#16a34a;}
         .status-busy{background:#fef3c7;color:#d97706;}
         
-        /* Ride Items */
         .ride-item{display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f3f4f6;align-items:center;}
         .ride-item:hover{background:#f8fafc;}
         .status-badge{padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;}
@@ -86,13 +79,11 @@
         .status-assigned{background:#fef3c7;color:#d97706;}
         .status-completed{background:#e5e7eb;color:#6b7280;}
         
-        /* Filter */
         .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
         .filter-btn{padding:8px 18px;border:1px solid #e5e7eb;background:white;border-radius:20px;cursor:pointer;font-size:12px;transition:0.2s;}
         .filter-btn:hover{background:#f3f4f6;}
         .filter-btn.active{background:#0f3460;color:white;border-color:#0f3460;}
         
-        /* Modal */
         .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;animation:fadeIn 0.3s;}
         @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
         .modal-content{background:white;padding:30px;border-radius:16px;width:500px;max-width:90%;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s;}
@@ -101,7 +92,6 @@
         .modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:12px;margin:10px 0;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;transition:0.2s;}
         .modal-content input:focus,.modal-content select:focus,.modal-content textarea:focus{outline:2px solid #0f3460;border-color:#0f3460;}
         
-        /* Forms */
         .add-employee-form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;}
         .add-employee-form input{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;min-width:150px;transition:0.2s;}
         .add-employee-form input:focus{outline:2px solid #0f3460;border-color:#0f3460;}
@@ -114,20 +104,16 @@
         .password-message.success{background:#dcfce7;color:#166534;display:block;}
         .password-message.error{background:#fee2e2;color:#991b1b;display:block;}
         
-        /* Debug */
         .debug{background:#1f2937;color:#10b981;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;max-height:150px;overflow-y:auto;}
         .debug::-webkit-scrollbar{width:4px;}
         .debug::-webkit-scrollbar-thumb{background:#10b981;border-radius:4px;}
         
-        /* Format Grid */
         .format-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0;}
         
-        /* Footer */
         .company-footer{text-align:center;padding:20px;color:#6b7280;font-size:12px;border-top:1px solid #e5e7eb;margin-top:20px;}
         .company-footer strong{color:#0f3460;}
         .company-footer span{color:#e94560;}
         
-        /* Responsive */
         @media (max-width:768px){
             .stats-grid{grid-template-columns:repeat(3,1fr);}
             .map-wrapper{height:300px;}
@@ -143,17 +129,32 @@
     </style>
 </head>
 <body>
+    <script>
+        // Admin Authentication Check
+        if (!Storage.isAdminLoggedIn()) {
+            window.location.href = 'admin-login.html';
+        }
+        
+        function handleAdminLogout() {
+            if (confirm('Are you sure you want to logout from Admin?')) {
+                Storage.adminLogout();
+                window.location.href = 'admin-login.html';
+            }
+        }
+    </script>
+    
     <div class="container">
         <!-- Header -->
         <div class="header">
             <div>
-                <h1>🏢 M <span>Creations</span> And Services</h1>
+                <h1>🏢 M <span>Creations</span></h1>
                 <div class="subtitle">Field Service & Delivery Tracking System</div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
                 <button class="btn btn-primary" onclick="showCreateForm()">➕ New Request</button>
                 <button class="btn btn-success" onclick="showReportModal()">📊 Export</button>
                 <button class="btn btn-secondary" onclick="scrollToEmployees()">👥 Employees</button>
+                <button class="btn btn-danger" onclick="handleAdminLogout()">🚪 Logout</button>
             </div>
         </div>
         
@@ -183,17 +184,15 @@
         <div id="employeeSection" class="card">
             <div class="card-title">👥 Employee Management <span style="font-size:12px;color:#6b7280;font-weight:normal;">Add, remove, or manage passwords</span></div>
             
-            <!-- Add Employee Form -->
             <div class="add-employee-form">
                 <input type="text" id="newEmployeeName" placeholder="Employee Name" style="flex:2;">
                 <input type="tel" id="newEmployeeContact" placeholder="Contact Number" style="flex:1;">
                 <button class="btn btn-success" onclick="addEmployee()">➕ Add Employee</button>
             </div>
             
-            <!-- Password Management -->
             <div class="password-section">
                 <div style="font-weight:600;color:#0f3460;margin-bottom:10px;">🔑 Password Management</div>
-                <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">Reset employee passwords. Default password: <strong>name + "123"</strong> (e.g., emp123)</p>
+                <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">Reset employee passwords. Default password: <strong>name + "123"</strong></p>
                 <div class="flex-row">
                     <select id="passwordEmployeeSelect">
                         <option value="">Select Employee</option>
@@ -204,7 +203,6 @@
                 <div id="passwordMessage" class="password-message"></div>
             </div>
             
-            <!-- Employee Table -->
             <div style="overflow-x:auto;margin-top:15px;">
                 <table class="employee-table" id="employeeTable">
                     <thead>
@@ -242,7 +240,7 @@
         
         <!-- Footer -->
         <div class="company-footer">
-            <strong>🏢 M <span>Creations</span> And Services</strong> — Field Service Excellence © 2026
+            <strong>🏢 M <span>Creations</span></strong> — Field Service Excellence © 2026
         </div>
     </div>
     
@@ -305,7 +303,6 @@
             renderEmployees();
             loadPasswordEmployees();
             
-            // Auto-refresh locations
             setInterval(() => {
                 const newLoc = Storage.getLiveLocations();
                 if (JSON.stringify(newLoc) !== JSON.stringify(liveLocations)) {
@@ -317,7 +314,6 @@
                 }
             }, 2000);
             
-            // Auto-refresh rides
             setInterval(() => {
                 const newRides = Storage.getRides();
                 if (newRides.length !== rides.length) {
@@ -341,10 +337,6 @@
             liveLocations = Storage.getLiveLocations();
             log(`📊 ${rides.length} rides, ${employees.length} employees, ${Object.keys(liveLocations).length} locations`);
         }
-        
-        // ============================================
-        // EMPLOYEE MANAGEMENT
-        // ============================================
         
         function renderEmployees() {
             const tbody = document.getElementById('employeeTableBody');
@@ -420,7 +412,7 @@
             const emp = employees.find(e => e.id === employeeId);
             if (!emp) return;
             
-            if (!confirm(`⚠️ Are you sure you want to delete "${emp.name}"?\n\nThis will remove the employee from the system.`)) return;
+            if (!confirm(`⚠️ Are you sure you want to delete "${emp.name}"?`)) return;
             
             if (Storage.deleteEmployee(employeeId)) {
                 loadData();
@@ -437,10 +429,6 @@
             document.getElementById('employeeSection').scrollIntoView({ behavior: 'smooth' });
             document.getElementById('newEmployeeName').focus();
         }
-        
-        // ============================================
-        // PASSWORD MANAGEMENT
-        // ============================================
         
         function loadPasswordEmployees() {
             const select = document.getElementById('passwordEmployeeSelect');
@@ -486,10 +474,6 @@
             }
         }
         
-        // ============================================
-        // MAP FUNCTIONS
-        // ============================================
-        
         function renderMap() {
             const container = document.getElementById('mapCanvas');
             const activeRides = rides.filter(r => r.status === 'in_progress');
@@ -526,10 +510,6 @@
                     y = ((38 - loc.lat) / 30) * 100;
                     x = Math.max(5, Math.min(95, x));
                     y = Math.max(5, Math.min(95, y));
-                } else {
-                    const hash = ride.id.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
-                    x = 20 + (hash % 60);
-                    y = 20 + ((hash * 7) % 60);
                 }
                 
                 const marker = document.createElement('div');
@@ -576,10 +556,6 @@
                 document.querySelector('.map-controls .btn-secondary').textContent = '🎲 Demo';
             }
         }
-        
-        // ============================================
-        // STATS & RIDES
-        // ============================================
         
         function updateStats() {
             const active = rides.filter(r => r.status === 'in_progress');
@@ -634,10 +610,6 @@
             renderRides();
         }
         
-        // ============================================
-        // MODALS
-        // ============================================
-        
         function showCreateForm() {
             const select = document.getElementById('employeeId');
             select.innerHTML = '<option value="">Select Field Engineer</option>';
@@ -676,10 +648,6 @@
             updateStats();
             e.target.reset();
         });
-        
-        // ============================================
-        // EXPORT FUNCTIONS
-        // ============================================
         
         function exportReport(format) {
             const period = document.getElementById('reportPeriod').value;
@@ -739,10 +707,6 @@
             else if (format === 'csv') exportExcel(rideData, totalKM, completed, periodLabel, period);
         }
         
-        // ============================================
-        // WORD EXPORT
-        // ============================================
-        
         function exportWord(rideData, totalKM, completed, periodLabel, period) {
             const date = new Date().toISOString().split('T')[0];
             let tableRows = '';
@@ -791,7 +755,7 @@
                 </head>
                 <body>
                     <div class="header">
-                        <h1>🏢 M <span>Creations</span> And Services</h1>
+                        <h1>🏢 M <span>Creations</span></h1>
                         <div class="sub">Field Service Report</div>
                         <div class="brand">Generated: ${new Date().toLocaleString()} | Period: ${periodLabel}</div>
                     </div>
@@ -819,7 +783,7 @@
                         </tbody>
                     </table>
                     <div class="footer">
-                        <p>🏢 M <span style="color:#e94560;">Creations</span> And Services — Field Service Excellence</p>
+                        <p>🏢 M <span style="color:#e94560;">Creations</span> — Field Service Excellence</p>
                         <p>© ${new Date().getFullYear()} M Creations. All rights reserved.</p>
                     </div>
                 </body>
@@ -835,10 +799,6 @@
             closeModal('reportModal');
             alert(`✅ M Creations Word Report Exported!\n📄 File: mcreations-report-${period}-${date}.doc`);
         }
-        
-        // ============================================
-        // EXCEL/CSV EXPORT
-        // ============================================
         
         function exportExcel(rideData, totalKM, completed, periodLabel, period) {
             const date = new Date().toISOString().split('T')[0];
@@ -857,10 +817,6 @@
             closeModal('reportModal');
             alert(`✅ M Creations Report Exported!`);
         }
-        
-        // ============================================
-        // INITIALIZE
-        // ============================================
         
         window.onload = init;
     </script>

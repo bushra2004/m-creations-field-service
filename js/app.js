@@ -1,5 +1,5 @@
 // ============================================
-// M CREATIONS AND SERVICES
+// M CREATIONS
 // Field Service Tracking System
 // ============================================
 
@@ -7,7 +7,6 @@ const Storage = {
     init() {
         console.log('🔧 M Creations Service Tracker initialized');
         
-        // Initialize employees with passwords
         if (!localStorage.getItem('employees')) {
             const employees = [
                 { id: 'EMP001', name: 'Emp', contact: '9876543210', password: 'emp123', status: 'available', joinDate: '2024-01-15' },
@@ -40,10 +39,6 @@ const Storage = {
         console.log('✅ M Creations System Ready');
     },
     
-    // ============================================
-    // EMPLOYEE MANAGEMENT
-    // ============================================
-    
     getEmployees() {
         try {
             return JSON.parse(localStorage.getItem('employees') || '[]');
@@ -74,21 +69,18 @@ const Storage = {
         return employees.find(e => e.id === id);
     },
     
-    // Employee Login
     loginEmployee(username, password) {
         const employee = this.getEmployeeByUsername(username);
         if (!employee) {
             return { success: false, message: 'Employee not found' };
         }
         if (employee.password === password) {
-            // Save current session
             sessionStorage.setItem('loggedInEmployee', JSON.stringify(employee));
             return { success: true, employee: employee };
         }
         return { success: false, message: 'Incorrect password' };
     },
     
-    // Get logged in employee
     getLoggedInEmployee() {
         try {
             const data = sessionStorage.getItem('loggedInEmployee');
@@ -98,13 +90,11 @@ const Storage = {
         }
     },
     
-    // Logout
     logoutEmployee() {
         sessionStorage.removeItem('loggedInEmployee');
         return true;
     },
     
-    // Add Employee with password
     addEmployee(name, contact, password) {
         const employees = this.getEmployees();
         const newId = 'EMP' + String(employees.length + 1).padStart(3, '0');
@@ -122,7 +112,6 @@ const Storage = {
         return newEmployee;
     },
     
-    // Update Employee Password
     updateEmployeePassword(employeeId, newPassword) {
         const employees = this.getEmployees();
         const index = employees.findIndex(e => e.id === employeeId);
@@ -150,10 +139,6 @@ const Storage = {
         console.log('🗑️ Employee deleted:', employee.name);
         return true;
     },
-    
-    // ============================================
-    // RIDE MANAGEMENT
-    // ============================================
     
     getRides() {
         try {
@@ -185,10 +170,6 @@ const Storage = {
         const rides = this.getRides();
         return rides.filter(r => r.employeeId === employeeId && r.status !== 'completed');
     },
-    
-    // ============================================
-    // LOCATION MANAGEMENT
-    // ============================================
     
     getLiveLocations() {
         try {
@@ -234,10 +215,6 @@ const Storage = {
         return true;
     },
     
-    // ============================================
-    // DISTANCE CALCULATION
-    // ============================================
-    
     calculateDistance(lat1, lng1, lat2, lng2) {
         const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -249,18 +226,39 @@ const Storage = {
         return R * c;
     },
     
-    // ============================================
-    // REFERENCE GENERATION
-    // ============================================
-    
     generateReference() {
         let counter = parseInt(localStorage.getItem('rideCounter') || '1000');
         counter++;
         localStorage.setItem('rideCounter', counter);
         return 'REF-' + counter;
+    },
+    
+    // ============================================
+    // ADMIN AUTHENTICATION
+    // ============================================
+    
+    adminLogin(username, password) {
+        const ADMIN_USERNAME = 'mohsin';
+        const ADMIN_PASSWORD = 'mohsin75333';
+        
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            return { success: true };
+        }
+        return { success: false, message: 'Invalid admin credentials' };
+    },
+    
+    isAdminLoggedIn() {
+        return sessionStorage.getItem('adminLoggedIn') === 'true';
+    },
+    
+    adminLogout() {
+        sessionStorage.removeItem('adminLoggedIn');
+        return true;
     }
 };
 
 Storage.init();
-console.log('🚀 M Creations And Services - Field Tracker Ready');
-console.log('📌 Default passwords: employee name + "123" (e.g., emp123)');
+console.log('🚀 M Creations - Field Tracker Ready');
+console.log('👑 Admin: mohsin / mohsin75333');
+console.log('📌 Employee default passwords: name + "123"');
