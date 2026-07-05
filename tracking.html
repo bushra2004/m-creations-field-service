@@ -7,16 +7,17 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0f3460 0%,#16213e 50%,#1a1a2e 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-        .card{background:white;border-radius:24px;padding:40px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+        .card{background:white;border-radius:24px;padding:40px;max-width:600px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.5s ease;}
+        @keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
         .brand{text-align:center;margin-bottom:20px;}
         .brand h1{color:#0f3460;font-size:24px;display:flex;align-items:center;justify-content:center;gap:10px;}
         .brand h1 span{color:#e94560;}
         .brand .sub{color:#6b7280;font-size:13px;}
         .search-box{display:flex;gap:12px;margin:20px 0;flex-wrap:wrap;}
-        .search-box input{flex:1;padding:14px;border:2px solid #e5e7eb;border-radius:12px;font-size:16px;min-width:150px;}
-        .search-box input:focus{outline:2px solid #0f3460;}
+        .search-box input{flex:1;padding:14px;border:2px solid #e5e7eb;border-radius:12px;font-size:16px;min-width:150px;transition:0.2s;}
+        .search-box input:focus{outline:2px solid #0f3460;border-color:#0f3460;}
         .search-box button{padding:14px 30px;background:#0f3460;color:white;border:none;border-radius:12px;font-weight:bold;cursor:pointer;transition:0.2s;}
-        .search-box button:hover{background:#16213e;}
+        .search-box button:hover{background:#16213e;transform:translateY(-1px);}
         .info-box{background:#f8fafc;border-radius:16px;padding:20px;margin-top:20px;}
         .status-badge{padding:4px 14px;border-radius:20px;font-size:13px;font-weight:600;display:inline-block;margin:10px 0;}
         .status-progress{background:#dcfce7;color:#16a34a;}
@@ -134,13 +135,9 @@
             if (isLive) {
                 const x = Math.max(5, Math.min(95, ((location.lng-68)/20)*100));
                 const y = Math.max(5, Math.min(95, ((38-location.lat)/30)*100));
-                mapHTML = `
-                    <div class="live-map"><div class="marker" style="left:${x}%;top:${y}%;">
-                        <div class="ring"></div><div class="dot"></div>
-                    </div></div>
+                mapHTML = `<div class="live-map"><div class="marker" style="left:${x}%;top:${y}%;"><div class="ring"></div><div class="dot"></div></div></div>
                     <div style="font-size:13px;color:#6b7280;">📍 ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}<br>🕒 Updated: ${new Date(location.timestamp).toLocaleTimeString()}</div>
-                    <div style="color:#10b981;font-size:13px;">🔄 Live Tracking Active</div>
-                `;
+                    <div style="color:#10b981;font-size:13px;">🔄 Live Tracking Active</div>`;
             } else if (ride.status === 'completed') {
                 mapHTML = `<div style="background:#dcfce7;padding:20px;border-radius:12px;text-align:center;margin:15px 0;">
                     ✅ Service Completed at ${ride.endTime ? new Date(ride.endTime).toLocaleTimeString() : ''}
@@ -148,9 +145,7 @@
                     <br><span style="font-size:12px;color:#6b7280;">Thank you for choosing M Creations</span>
                 </div>`;
             } else {
-                mapHTML = `<div style="background:#fef3c7;padding:20px;border-radius:12px;text-align:center;margin:15px 0;">
-                    ⏳ Engineer is being assigned...
-                </div>`;
+                mapHTML = `<div style="background:#fef3c7;padding:20px;border-radius:12px;text-align:center;margin:15px 0;">⏳ Engineer is being assigned...</div>`;
             }
             
             let distanceHTML = (ride.status === 'completed' || ride.status === 'in_progress') ? `
@@ -166,30 +161,27 @@
                 </div>
             ` : '';
             
-            document.getElementById('result').innerHTML = `
-                <div class="info-box">
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
-                        <strong style="font-size:18px;color:#0f3460;">🏢 ${ride.id}</strong>
-                        ${isLive ? '<span class="live-badge">● LIVE</span>' : ''}
-                        ${ride.status === 'completed' ? '✅ Service Complete' : ''}
-                    </div>
-                    <span class="status-badge ${statusClass}">${statusText}</span>
-                    ${distanceHTML}
-                    ${mapHTML}
-                    <div class="info-grid">
-                        <div class="item"><span class="label">Customer</span><span class="value">${ride.customerName}</span></div>
-                        <div class="item"><span class="label">Mobile</span><span class="value">${ride.customerMobile}</span></div>
-                        <div class="item"><span class="label">Engineer</span><span class="value">${employee?.name || 'Being assigned'}</span></div>
-                        <div class="item"><span class="label">Requested</span><span class="value">${new Date(ride.createdAt).toLocaleString()}</span></div>
-                    </div>
+            document.getElementById('result').innerHTML = `<div class="info-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                    <strong style="font-size:18px;color:#0f3460;">🏢 ${ride.id}</strong>
+                    ${isLive ? '<span class="live-badge">● LIVE</span>' : ''}
+                    ${ride.status === 'completed' ? '✅ Service Complete' : ''}
                 </div>
-            `;
+                <span class="status-badge ${statusClass}">${statusText}</span>
+                ${distanceHTML}
+                ${mapHTML}
+                <div class="info-grid">
+                    <div class="item"><span class="label">Customer</span><span class="value">${ride.customerName}</span></div>
+                    <div class="item"><span class="label">Mobile</span><span class="value">${ride.customerMobile}</span></div>
+                    <div class="item"><span class="label">Engineer</span><span class="value">${employee?.name || 'Being assigned'}</span></div>
+                    <div class="item"><span class="label">Requested</span><span class="value">${new Date(ride.createdAt).toLocaleString()}</span></div>
+                </div>
+            </div>`;
         }
         
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
         if (id) { document.getElementById('trackingId').value = id; trackRide(); }
-        
         document.getElementById('trackingId').addEventListener('keypress', e => { if (e.key === 'Enter') trackRide(); });
     </script>
 </body>

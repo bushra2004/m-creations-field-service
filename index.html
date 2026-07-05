@@ -8,7 +8,8 @@
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0f3460 0%,#16213e 50%,#1a1a2e 100%);min-height:100vh;}
         .container{max-width:1200px;margin:0 auto;padding:20px;}
-        .landing-card{background:white;border-radius:24px;padding:50px 30px;text-align:center;max-width:900px;margin:50px auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+        .landing-card{background:white;border-radius:24px;padding:50px 30px;text-align:center;max-width:900px;margin:50px auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.6s ease;}
+        @keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
         .company-logo{font-size:48px;color:#0f3460;margin-bottom:10px;}
         .company-logo span{color:#e94560;}
         h1{font-size:36px;color:#0f3460;margin:10px 0;}
@@ -48,7 +49,7 @@
                     <div class="icon">👷</div>
                     <h3>Employee Login</h3>
                     <p>Login to view and manage your assigned services</p>
-                    <span class="badge badge-login">🔐 Secure Login</span>
+                    <span class="badge badge-login">📋 Auto Attendance</span>
                 </a>
                 <a href="tracking.html" class="role-card">
                     <div class="icon">📍</div>

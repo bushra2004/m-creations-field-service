@@ -8,62 +8,51 @@
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;padding:20px;}
         .container{max-width:600px;margin:0 auto;}
-        
         .header{background:linear-gradient(135deg,#0f3460 0%,#16213e 100%);color:white;padding:20px;border-radius:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
         .header h1{font-size:20px;display:flex;align-items:center;gap:10px;}
         .header h1 span{color:#e94560;}
         .header .sub{font-size:11px;opacity:0.8;}
-        .logout-btn{background:#e94560;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;}
+        .logout-btn{background:#e94560;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;transition:0.2s;}
         .logout-btn:hover{background:#c73652;}
-        
         .card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
         .card-title{font-size:16px;font-weight:bold;color:#0f3460;margin-bottom:15px;display:flex;align-items:center;gap:10px;}
-        
         .employee-profile{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
         .employee-profile .avatar{width:60px;height:60px;background:linear-gradient(135deg,#0f3460,#e94560);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;color:white;font-weight:bold;}
         .employee-profile .info h3{color:#0f3460;font-size:18px;}
         .employee-profile .info p{color:#6b7280;font-size:13px;}
-        
         .gps-status{padding:12px;border-radius:10px;margin:10px 0;font-weight:bold;}
         .online{background:#dcfce7;color:#166534;}
         .offline{background:#fee2e2;color:#991b1b;}
         .coords{font-family:monospace;font-size:13px;color:#6b7280;padding:8px;background:#f1f5f9;border-radius:8px;margin-top:5px;}
-        
-        .ride{border-left:4px solid #0f3460;padding:16px;background:#f8fafc;border-radius:12px;margin-bottom:12px;}
+        .ride{border-left:4px solid #0f3460;padding:16px;background:#f8fafc;border-radius:12px;margin-bottom:12px;transition:0.2s;}
+        .ride:hover{background:#f1f5f9;}
         .ride.active{border-left-color:#10b981;background:#f0fdf4;}
         .ride.completed-ride{border-left-color:#6b7280;background:#f3f4f6;opacity:0.7;}
         .ride .completed-badge{background:#10b981;color:white;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:bold;}
-        
         .btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.2s;}
         .btn-primary{background:#0f3460;color:white;}
         .btn-primary:hover{background:#16213e;}
         .btn-success{background:#10b981;color:white;}
         .btn-success:hover{background:#059669;}
         .btn-warning{background:#f59e0b;color:white;}
-        .btn-danger{background:#e94560;color:white;}
-        .btn-danger:hover{background:#c73652;}
-        
         .debug{background:#1f2937;color:#10b981;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;max-height:150px;overflow-y:auto;}
         .company-footer{text-align:center;padding:20px;color:#6b7280;font-size:11px;}
         .company-footer strong{color:#0f3460;}
         .company-footer span{color:#e94560;}
-        
         .no-rides{text-align:center;padding:30px 20px;color:#6b7280;}
         .no-rides .icon{font-size:48px;margin-bottom:10px;}
-        
         .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:16px 24px;border-radius:12px;color:white;font-weight:bold;z-index:9999;display:none;animation:slideUp 0.3s;}
         .toast.success{background:#10b981;}
         .toast.error{background:#e94560;}
         .toast.info{background:#0f3460;}
         @keyframes slideUp{from{transform:translateX(-50%) translateY(20px);opacity:0;}to{transform:translateX(-50%) translateY(0);opacity:1;}}
+        @media (max-width:480px){.header{flex-direction:column;text-align:center;}}
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Toast Notification -->
         <div id="toast" class="toast"></div>
         
-        <!-- Header -->
         <div class="header">
             <div>
                 <h1>🏢 M <span>Creations</span></h1>
@@ -72,14 +61,10 @@
             <button class="logout-btn" onclick="handleLogout()">🚪 Logout</button>
         </div>
         
-        <!-- Employee Profile -->
         <div class="card" id="profileCard">
-            <div class="employee-profile" id="employeeProfile">
-                <!-- Dynamically loaded -->
-            </div>
+            <div class="employee-profile" id="employeeProfile"></div>
         </div>
         
-        <!-- GPS Status -->
         <div class="card" id="gpsCard">
             <div class="card-title">📍 GPS Status</div>
             <div id="gpsStatus" class="gps-status offline">⏳ Waiting for GPS...</div>
@@ -87,34 +72,22 @@
             <button class="btn btn-warning" onclick="testGPS()" style="margin-top:10px;">📡 Test GPS</button>
         </div>
         
-        <!-- Rides Container -->
         <div id="ridesContainer"></div>
         
-        <!-- Debug -->
         <div class="card">
             <div class="card-title">🔍 System Log</div>
             <div id="debugLog" class="debug">[Ready] Loading...</div>
         </div>
         
         <div class="company-footer">
-            <strong>🏢 M <span>Creations</span> And Services</strong> — Field Service Excellence
+            <strong>🏢 M <span>Creations</span></strong> — Field Service Excellence
         </div>
     </div>
     
     <script src="js/app.js"></script>
     <script>
-        // ============================================
-        // AUTHENTICATION CHECK
-        // ============================================
-        
         const loggedInEmployee = Storage.getLoggedInEmployee();
-        if (!loggedInEmployee) {
-            window.location.href = 'login.html';
-        }
-        
-        // ============================================
-        // MAIN APPLICATION
-        // ============================================
+        if (!loggedInEmployee) { window.location.href = 'login.html'; }
         
         let currentEmployee = loggedInEmployee;
         let activeRide = null;
@@ -125,9 +98,7 @@
             toast.textContent = message;
             toast.className = `toast ${type}`;
             toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 4000);
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
         }
         
         function log(msg) {
@@ -138,17 +109,10 @@
         }
         
         function testGPS() {
-            if (!navigator.geolocation) { 
-                showToast('❌ GPS not supported on this device', 'error');
-                return; 
-            }
+            if (!navigator.geolocation) { showToast('❌ GPS not supported', 'error'); return; }
             navigator.geolocation.getCurrentPosition(
-                p => {
-                    showToast(`✅ GPS Working! Lat: ${p.coords.latitude.toFixed(4)}, Lng: ${p.coords.longitude.toFixed(4)}`, 'success');
-                },
-                e => {
-                    showToast(`❌ GPS Error: ${e.message}`, 'error');
-                }
+                p => showToast(`✅ GPS Working! Lat: ${p.coords.latitude.toFixed(4)}, Lng: ${p.coords.longitude.toFixed(4)}`, 'success'),
+                e => showToast(`❌ GPS Error: ${e.message}`, 'error')
             );
         }
         
@@ -163,7 +127,6 @@
             const container = document.getElementById('employeeProfile');
             const emp = currentEmployee;
             const initial = emp.name.charAt(0).toUpperCase();
-            
             container.innerHTML = `
                 <div class="avatar">${initial}</div>
                 <div class="info">
@@ -175,10 +138,7 @@
         }
         
         function startGPS() {
-            if (!navigator.geolocation) {
-                document.getElementById('gpsStatus').innerHTML = '❌ GPS not supported';
-                return;
-            }
+            if (!navigator.geolocation) { document.getElementById('gpsStatus').innerHTML = '❌ GPS not supported'; return; }
             if (watchId) navigator.geolocation.clearWatch(watchId);
             
             watchId = navigator.geolocation.watchPosition(
@@ -188,7 +148,6 @@
                     document.getElementById('gpsStatus').className = 'gps-status online';
                     document.getElementById('gpsCoords').innerHTML = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
                     log(`📍 GPS: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-                    
                     if (activeRide && activeRide.status === 'in_progress') {
                         Storage.updateLiveLocation(activeRide.id, lat, lng);
                         log(`💾 Location saved for ${activeRide.id}`);
@@ -203,27 +162,18 @@
             );
         }
         
-        // ============================================
-        // ✅ FIXED: Load Rides with Proper Status
-        // ============================================
-        
         function loadRides() {
             if (!currentEmployee) return;
             const allRides = Storage.getRides();
             const assigned = allRides.filter(r => r.employeeId === currentEmployee.id && r.status !== 'completed');
             const completedRides = allRides.filter(r => r.employeeId === currentEmployee.id && r.status === 'completed');
-            
             const container = document.getElementById('ridesContainer');
             
-            // Check if there's an active ride
             const activeRideData = assigned.find(r => r.status === 'in_progress');
-            if (activeRideData) {
-                activeRide = activeRideData;
-            }
+            if (activeRideData) { activeRide = activeRideData; }
             
             let html = '';
             
-            // Show active/assigned rides
             if (assigned.length > 0) {
                 html += '<div class="card"><div class="card-title">📋 Your Services</div>';
                 assigned.forEach(ride => {
@@ -245,7 +195,6 @@
                 html += '</div>';
             }
             
-            // Show completed rides
             if (completedRides.length > 0) {
                 html += '<div class="card"><div class="card-title">✅ Completed Services</div>';
                 completedRides.slice(-5).reverse().forEach(ride => {
@@ -273,72 +222,44 @@
                     </div>
                 `;
             }
-            
             container.innerHTML = html;
         }
-        
-        // ============================================
-        // ✅ FIXED: Start Ride
-        // ============================================
         
         function startRide(rideId) {
             log(`▶ Starting service: ${rideId}`);
             const rides = Storage.getRides();
             const index = rides.findIndex(r => r.id === rideId);
-            if (index === -1) {
-                showToast('❌ Ride not found!', 'error');
-                return;
-            }
+            if (index === -1) { showToast('❌ Ride not found!', 'error'); return; }
             
             rides[index].status = 'in_progress';
             rides[index].startTime = new Date().toISOString();
             Storage.saveRides(rides);
             activeRide = rides[index];
             
-            // Send initial location
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(pos => {
                     Storage.updateLiveLocation(rideId, pos.coords.latitude, pos.coords.longitude);
                     log(`✅ Initial location sent`);
                 }, () => {});
             }
-            
             loadRides();
-            showToast(`✅ Service Started!\n📍 GPS Active`, 'success');
+            showToast(`✅ Service Started! 📍 GPS Active`, 'success');
         }
-        
-        // ============================================
-        // ✅ FIXED: Complete Ride (End Ride)
-        // ============================================
         
         function completeRide(rideId) {
             if (!confirm('✅ Complete this service?')) return;
-            
             log(`🏁 Completing service: ${rideId}`);
-            
             const rides = Storage.getRides();
             const index = rides.findIndex(r => r.id === rideId);
-            
-            if (index === -1) {
-                showToast('❌ Ride not found!', 'error');
-                return;
-            }
+            if (index === -1) { showToast('❌ Ride not found!', 'error'); return; }
             
             const ride = rides[index];
-            
-            // ✅ Calculate duration
             const endTime = new Date();
             const startTime = new Date(ride.startTime);
             const durationMinutes = Math.round((endTime - startTime) / 1000 / 60);
-            
-            // ✅ Calculate KM from GPS locations
             const locations = Storage.getLiveLocations();
             const rideLocations = [];
-            for (const key in locations) {
-                if (key === rideId) {
-                    rideLocations.push(locations[key]);
-                }
-            }
+            for (const key in locations) { if (key === rideId) { rideLocations.push(locations[key]); } }
             
             let totalKM = 0;
             if (rideLocations.length > 1) {
@@ -352,19 +273,17 @@
                 totalKM = Math.round(totalKM * 100) / 100;
             }
             
-            // ✅ Update ride status
             rides[index].status = 'completed';
             rides[index].endTime = endTime.toISOString();
             rides[index].duration = durationMinutes;
             rides[index].totalDistance = totalKM;
             rides[index].stops = rideLocations.length;
-            
             Storage.saveRides(rides);
             
-            // ✅ Clear active ride
-            activeRide = null;
+            // ✅ Update attendance with ride stats
+            Storage.updateAttendanceRideStats(currentEmployee.id, totalKM);
             
-            // ✅ Stop GPS if no more active rides
+            activeRide = null;
             const remainingActive = rides.filter(r => r.employeeId === currentEmployee.id && r.status === 'in_progress');
             if (remainingActive.length === 0 && watchId) {
                 navigator.geolocation.clearWatch(watchId);
@@ -372,32 +291,17 @@
                 document.getElementById('gpsStatus').innerHTML = '⏳ GPS paused - No active rides';
                 document.getElementById('gpsStatus').className = 'gps-status offline';
             }
-            
             loadRides();
-            showToast(`✅ Service Completed!\n⏱ ${durationMinutes} min · 📏 ${totalKM} KM`, 'success');
+            showToast(`✅ Service Completed! ⏱ ${durationMinutes} min · 📏 ${totalKM} KM`, 'success');
             log(`✅ Ride ${rideId} completed. Duration: ${durationMinutes}min, KM: ${totalKM}`);
         }
-        
-        // ============================================
-        // INITIALIZE
-        // ============================================
         
         log(`🚀 Welcome ${currentEmployee.name}!`);
         loadProfile();
         loadRides();
         startGPS();
-        
-        // Auto-refresh rides every 5 seconds
-        setInterval(() => {
-            if (currentEmployee) loadRides();
-        }, 5000);
-        
-        // Check session validity
-        setInterval(() => {
-            if (!Storage.getLoggedInEmployee()) {
-                window.location.href = 'login.html';
-            }
-        }, 60000);
+        setInterval(() => { if (currentEmployee) loadRides(); }, 5000);
+        setInterval(() => { if (!Storage.getLoggedInEmployee()) { window.location.href = 'login.html'; } }, 60000);
     </script>
 </body>
 </html>
