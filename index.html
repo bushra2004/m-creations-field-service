@@ -3,313 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Login - M Creations</title>
+    <title>M Creations - Field Service</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0f3460 0%,#16213e 50%,#1a1a2e 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
-        .login-container{background:white;border-radius:24px;padding:50px 40px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.5s ease;}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0f3460 0%,#16213e 50%,#1a1a2e 100%);min-height:100vh;}
+        .container{max-width:1200px;margin:0 auto;padding:20px;}
+        .landing-card{background:white;border-radius:24px;padding:50px 30px;text-align:center;max-width:900px;margin:50px auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);animation:slideUp 0.6s ease;}
         @keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-        .brand{text-align:center;margin-bottom:30px;}
-        .brand .logo{font-size:48px;color:#e94560;display:block;}
-        .brand h1{color:#0f3460;font-size:28px;margin-top:5px;}
-        .brand h1 span{color:#e94560;}
-        .brand .sub{color:#6b7280;font-size:14px;margin-top:5px;}
-        .brand .geo-badge{display:inline-block;background:#10b981;color:white;padding:2px 14px;border-radius:20px;font-size:10px;font-weight:600;margin-top:8px;}
-        .form-group{margin-bottom:20px;}
-        .form-group label{display:block;font-weight:600;font-size:14px;color:#1f2937;margin-bottom:5px;}
-        .form-group input{width:100%;padding:14px 16px;border:2px solid #e5e7eb;border-radius:12px;font-size:15px;transition:0.3s;background:#fafafa;}
-        .form-group input:focus{outline:none;border-color:#0f3460;background:white;box-shadow:0 0 0 4px rgba(15,52,96,0.1);}
-        .btn-login{width:100%;padding:16px;background:linear-gradient(135deg,#0f3460 0%,#16213e 100%);color:white;border:none;border-radius:12px;font-size:16px;font-weight:bold;cursor:pointer;transition:0.3s;}
-        .btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(15,52,96,0.3);}
-        .btn-login:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
-        .btn-login .spinner{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top:2px solid white;border-radius:50%;animation:spin 0.8s linear infinite;margin-right:8px;}
-        @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-        .message-box{padding:12px 16px;border-radius:10px;margin-bottom:15px;display:none;font-size:14px;font-weight:500;animation:slideDown 0.3s ease;}
-        @keyframes slideDown{from{transform:translateY(-10px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-        .message-box.error{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;display:block;}
-        .message-box.success{background:#dcfce7;color:#166534;border:1px solid #bbf7d0;display:block;}
-        .message-box.warning{background:#fef3c7;color:#92400e;border:1px solid #fde68a;display:block;}
-        .message-box.info{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe;display:block;}
-        .footer-links{text-align:center;margin-top:20px;font-size:13px;color:#6b7280;}
-        .footer-links a{color:#0f3460;text-decoration:none;font-weight:600;transition:0.2s;}
-        .footer-links a:hover{color:#e94560;text-decoration:underline;}
-        .demo-note{background:#f1f5f9;padding:15px;border-radius:12px;margin-top:20px;font-size:13px;color:#6b7280;text-align:center;border:1px dashed #d1d5db;}
-        .demo-note strong{color:#0f3460;}
-        .demo-note .demo-cred{display:inline-block;background:#0f3460;color:white;padding:2px 10px;border-radius:4px;font-family:monospace;font-size:12px;margin:2px;}
-        .location-status{background:#f1f5f9;padding:10px 14px;border-radius:10px;margin-top:15px;display:none;font-size:12px;color:#6b7280;text-align:center;border:1px solid #e5e7eb;}
-        .company-footer{text-align:center;padding:20px 0 0 0;color:#6b7280;font-size:11px;border-top:1px solid #e5e7eb;margin-top:25px;}
-        .company-footer strong{color:#0f3460;}
+        .company-logo{font-size:48px;color:#0f3460;margin-bottom:10px;}
+        .company-logo span{color:#e94560;}
+        h1{font-size:36px;color:#0f3460;margin:10px 0;}
+        h1 span{color:#e94560;}
+        .subtitle{color:#6b7280;font-size:18px;margin-bottom:40px;}
+        .role-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:24px;margin:40px 0;}
+        .role-card{background:#f8fafc;padding:35px 25px;border-radius:16px;text-decoration:none;color:#1f2937;transition:all 0.3s;border:2px solid transparent;}
+        .role-card:hover{transform:translateY(-8px);border-color:#0f3460;box-shadow:0 12px 30px rgba(15,52,96,0.15);}
+        .role-card .icon{font-size:52px;margin-bottom:16px;}
+        .role-card h3{font-size:20px;color:#0f3460;}
+        .role-card p{color:#6b7280;font-size:14px;}
+        .role-card .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px;}
+        .badge-login{background:#0f3460;color:white;}
+        .badge-admin{background:#e94560;color:white;}
+        .status-bar{background:#f1f5f9;padding:12px;border-radius:12px;font-size:14px;color:#64748b;}
+        .company-footer{text-align:center;padding:20px;color:white;font-size:12px;opacity:0.8;}
+        .company-footer strong{color:white;}
         .company-footer span{color:#e94560;}
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="brand">
-            <span class="logo">🏢</span>
+    <div class="container">
+        <div class="landing-card">
+            <div class="company-logo">🏢 <span>✦</span></div>
             <h1>M <span>Creations</span></h1>
-            <div class="sub">Employee Login · Geo-Fencing Enabled</div>
-            <div class="geo-badge">📍 100m Office Radius</div>
-        </div>
-        
-        <div id="messageBox" class="message-box"></div>
-        
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <div class="form-group">
-                <label for="username">👤 Employee Name</label>
-                <input type="text" id="username" placeholder="Enter your registered name" required autofocus>
+            <p class="subtitle">Field Service & Delivery Tracking System</p>
+            
+            <div class="role-grid">
+                <!-- ✅ Admin Login -->
+                <a href="admin-login.html" class="role-card">
+                    <div class="icon">👑</div>
+                    <h3>Admin Dashboard</h3>
+                    <p>Manage employees, approve requests, view reports</p>
+                    <span class="badge badge-admin">🔐 Secure Login</span>
+                </a>
+                
+                <!-- ✅ Employee Login -->
+                <a href="login.html" class="role-card">
+                    <div class="icon">👷</div>
+                    <h3>Employee Login</h3>
+                    <p>Login with geo-fencing, self-assign rides</p>
+                    <span class="badge badge-login">📍 100m Radius</span>
+                </a>
             </div>
-            <div class="form-group">
-                <label for="password">🔑 Password</label>
-                <input type="password" id="password" placeholder="Enter your password" required>
-            </div>
-            <button type="submit" class="btn-login" id="loginBtn">📍 Login & Verify Location</button>
-        </form>
-        
-        <div id="locationStatus" class="location-status">📍 Detecting your location...</div>
-        
-        <div class="demo-note">
-            💡 <strong>Demo Credentials:</strong><br>
-            <span class="demo-cred">Emp</span> · Password: <span class="demo-cred">emp123</span>
-            <span style="display:inline-block;margin:0 5px;color:#d1d5db;">|</span>
-            <span class="demo-cred">Bandu</span> · Password: <span class="demo-cred">bandu123</span>
-        </div>
-        
-        <div class="footer-links">
-            <a href="index.html">🏠 Back to Home</a>
-            <span class="separator">|</span>
-            <a href="admin-login.html">👑 Admin Login</a>
+            
+            <div class="status-bar">⚡ Real-Time Tracking • Geo-Fencing Enabled • 100m Office Radius</div>
         </div>
         
         <div class="company-footer">
-            <strong>🏢 M <span>Creations</span></strong> — Field Service Excellence
+            <strong>🏢 M <span>Creations</span></strong> — Field Service Excellence © 2026
         </div>
     </div>
-    
-    <script src="js/app.js"></script>
-    <script>
-        // ============================================
-        // CHECK IF ALREADY LOGGED IN
-        // ============================================
-        if (Storage.getLoggedInEmployee && Storage.getLoggedInEmployee()) {
-            window.location.href = 'employee.html';
-        }
-        
-        // ============================================
-        // VARIABLES
-        // ============================================
-        let currentLat = null;
-        let currentLng = null;
-        const messageBox = document.getElementById('messageBox');
-        const loginBtn = document.getElementById('loginBtn');
-        const locationStatus = document.getElementById('locationStatus');
-        
-        // ============================================
-        // MESSAGE FUNCTIONS
-        // ============================================
-        function showMessage(message, type = 'info') {
-            messageBox.textContent = message;
-            messageBox.className = `message-box ${type}`;
-            messageBox.style.display = 'block';
-            if (type === 'success') { 
-                setTimeout(() => { 
-                    messageBox.style.display = 'none'; 
-                }, 8000);
-            }
-        }
-        
-        function hideMessage() { 
-            messageBox.style.display = 'none'; 
-        }
-        
-        // ============================================
-        // GET LOCATION
-        // ============================================
-        function getLocation() {
-            locationStatus.style.display = 'block';
-            locationStatus.textContent = '📍 Detecting your location...';
-            
-            if (!navigator.geolocation) {
-                locationStatus.textContent = '❌ GPS not supported. Please use Chrome/Edge.';
-                return;
-            }
-            
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    currentLat = pos.coords.latitude;
-                    currentLng = pos.coords.longitude;
-                    
-                    if (typeof Storage.calculateDistance === 'function') {
-                        const dist = Storage.calculateDistance(currentLat, currentLng, Storage.OFFICE_LAT, Storage.OFFICE_LNG);
-                        const distMeters = (dist * 1000).toFixed(0);
-                        const withinOffice = dist <= Storage.OFFICE_RADIUS_KM;
-                        
-                        locationStatus.innerHTML = `
-                            📍 Location: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}<br>
-                            📏 Distance from office: <strong>${distMeters} meters</strong><br>
-                            ${withinOffice ? '✅ You are within the office radius. You can login directly.' : '⚠️ You are outside the office radius. You will need admin approval.'}
-                        `;
-                        locationStatus.style.borderColor = withinOffice ? '#10b981' : '#f59e0b';
-                    } else {
-                        locationStatus.innerHTML = `
-                            📍 Location: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}
-                        `;
-                    }
-                },
-                (err) => {
-                    locationStatus.textContent = '❌ Unable to get location. Please enable GPS and refresh.';
-                    console.error('GPS Error:', err);
-                },
-                { enableHighAccuracy: true, timeout: 10000 }
-            );
-        }
-        
-        // ============================================
-        // ✅ FIXED: HANDLE LOGIN
-        // ============================================
-        function handleLogin(e) {
-            e.preventDefault();
-            hideMessage();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            
-            // Validate inputs
-            if (!username || !password) {
-                showMessage('❌ Please enter both username and password', 'error');
-                document.getElementById('username').focus();
-                return;
-            }
-            
-            // Check if location is available
-            if (currentLat === null || currentLng === null) {
-                showMessage('📍 Please wait while we detect your location...', 'info');
-                // Try to get location again
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        currentLat = pos.coords.latitude;
-                        currentLng = pos.coords.longitude;
-                        showMessage('📍 Location detected! Click Login again.', 'success');
-                        loginBtn.disabled = false;
-                        loginBtn.innerHTML = '📍 Login & Verify Location';
-                    },
-                    (err) => {
-                        showMessage('❌ Could not get location. Please enable GPS.', 'error');
-                        loginBtn.disabled = false;
-                        loginBtn.innerHTML = '📍 Login & Verify Location';
-                    }
-                );
-                return;
-            }
-            
-            // ✅ Check if Storage.loginEmployee exists
-            if (typeof Storage.loginEmployee !== 'function') {
-                showMessage('❌ System error: Login function not available. Please refresh.', 'error');
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '📍 Login & Verify Location';
-                console.error('Storage.loginEmployee is not a function!');
-                return;
-            }
-            
-            // ✅ Proceed with login
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span class="spinner"></span> Verifying location...';
-            
-            setTimeout(() => {
-                try {
-                    const result = Storage.loginEmployee(username, password, currentLat, currentLng);
-                    console.log('Login result:', result);
-                    
-                    if (result.success) {
-                        if (result.withinOffice) {
-                            showMessage(`✅ ${result.message}`, 'success');
-                            setTimeout(() => { 
-                                window.location.href = 'employee.html'; 
-                            }, 1500);
-                        } else {
-                            showMessage(`✅ ${result.message}`, 'success');
-                            setTimeout(() => { 
-                                window.location.href = 'employee.html'; 
-                            }, 1500);
-                        }
-                    } else {
-                        if (result.requestId) {
-                            showMessage(`⚠️ ${result.message}`, 'warning');
-                            loginBtn.disabled = false;
-                            loginBtn.innerHTML = '📍 Login & Verify Location';
-                            
-                            // Poll for approval
-                            let pollCount = 0;
-                            const checkApproval = setInterval(() => {
-                                pollCount++;
-                                const requests = Storage.getLoginRequests();
-                                const request = requests.find(r => r.id === result.requestId);
-                                
-                                if (request && request.status === 'approved') {
-                                    clearInterval(checkApproval);
-                                    // Login the employee now
-                                    sessionStorage.setItem('loggedInEmployee', JSON.stringify(result.employee));
-                                    Storage.markAttendance(result.employee.id, currentLat, currentLng, 'remote_approved');
-                                    showMessage(`✅ Admin approved! Logging in...`, 'success');
-                                    setTimeout(() => { window.location.href = 'employee.html'; }, 1500);
-                                } else if (request && request.status === 'rejected') {
-                                    clearInterval(checkApproval);
-                                    showMessage(`❌ Admin rejected your login request.`, 'error');
-                                    loginBtn.disabled = false;
-                                    loginBtn.innerHTML = '📍 Login & Verify Location';
-                                }
-                                
-                                if (pollCount > 60) {
-                                    clearInterval(checkApproval);
-                                    showMessage(`⏳ Request timeout. Please try again.`, 'error');
-                                    loginBtn.disabled = false;
-                                    loginBtn.innerHTML = '📍 Login & Verify Location';
-                                }
-                            }, 2000);
-                        } else {
-                            showMessage('❌ ' + result.message, 'error');
-                            loginBtn.disabled = false;
-                            loginBtn.innerHTML = '📍 Login & Verify Location';
-                            document.getElementById('password').value = '';
-                            document.getElementById('password').focus();
-                        }
-                    }
-                } catch (error) {
-                    console.error('Login error:', error);
-                    showMessage('❌ System error: ' + error.message, 'error');
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '📍 Login & Verify Location';
-                }
-            }, 500);
-        }
-        
-        // ============================================
-        // EVENT LISTENERS
-        // ============================================
-        document.getElementById('username').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('password').focus();
-            }
-        });
-        
-        document.getElementById('password').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
-            }
-        });
-        
-        document.getElementById('username').addEventListener('input', hideMessage);
-        document.getElementById('password').addEventListener('input', hideMessage);
-        
-        // ============================================
-        // INITIALIZE
-        // ============================================
-        window.addEventListener('load', function() {
-            document.getElementById('username').focus();
-            getLocation();
-            console.log('✅ Login page loaded');
-            console.log('📌 Storage object available:', typeof Storage);
-            console.log('📌 Storage.loginEmployee available:', typeof Storage.loginEmployee);
-        });
-    </script>
 </body>
 </html>
