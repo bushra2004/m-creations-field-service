@@ -7,14 +7,16 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;}
-        :root{--primary:#0f3460;--accent:#e94560;--success:#10b981;--gray:#6b7280;}
+        :root{--primary:#0f3460;--accent:#e94560;--success:#10b981;--warning:#f59e0b;}
         .container{max-width:1400px;margin:0 auto;padding:20px;}
+        
         .header{background:linear-gradient(135deg,#0f3460 0%,#16213e 100%);color:white;padding:20px 30px;border-radius:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
         .header h1{font-size:24px;display:flex;align-items:center;gap:10px;}
         .header h1 span{color:#e94560;}
         .header .subtitle{font-size:12px;opacity:0.8;font-weight:300;}
         .live-indicator{background:#e94560;color:white;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:600;animation:pulse 1.5s infinite;}
         @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+        
         .btn{padding:10px 20px;border:none;border-radius:10px;cursor:pointer;font-weight:600;font-size:13px;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;}
         .btn-primary{background:#0f3460;color:white;}
         .btn-primary:hover{background:#16213e;transform:translateY(-1px);}
@@ -24,10 +26,13 @@
         .btn-danger:hover{background:#c73652;transform:translateY(-1px);}
         .btn-secondary{background:#e5e7eb;color:#1f2937;}
         .btn-secondary:hover{background:#d1d5db;transform:translateY(-1px);}
-        .btn-warning{background:#f59e0b;color:white;}
-        .btn-warning:hover{background:#d97706;transform:translateY(-1px);}
-        .btn-word{background:#2b5797;color:white;}
-        .btn-word:hover{background:#1a3a6a;transform:translateY(-1px);}
+        .btn-excel{background:#217346;color:white;}
+        .btn-excel:hover{background:#1a5c38;transform:translateY(-1px);}
+        .btn-clear-all{background:#dc2626;color:white;}
+        .btn-clear-all:hover{background:#b91c1c;transform:translateY(-1px);}
+        .btn-clear-today{background:#f59e0b;color:white;}
+        .btn-clear-today:hover{background:#d97706;transform:translateY(-1px);}
+        
         .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px;}
         .stat-card{background:white;padding:18px;border-radius:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.06);border-top:3px solid #0f3460;transition:0.2s;}
         .stat-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.1);}
@@ -35,6 +40,8 @@
         .stat-card .value{font-size:28px;font-weight:bold;color:#0f3460;margin-top:5px;}
         .stat-card .value.accent{color:#e94560;}
         .stat-card .value.success{color:#10b981;}
+        .stat-card .value.warning{color:#f59e0b;}
+        
         .map-container{background:white;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
         .map-wrapper{height:400px;background:#e5e7eb;border-radius:12px;position:relative;overflow:hidden;}
         #mapCanvas{width:100%;height:100%;position:relative;}
@@ -45,8 +52,22 @@
         .map-marker .pulse-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;background:rgba(16,185,129,0.2);animation:ringPulse 1.5s infinite;}
         @keyframes ringPulse{0%{transform:translate(-50%,-50%) scale(1);opacity:1;}100%{transform:translate(-50%,-50%) scale(2);opacity:0;}}
         .map-controls{display:flex;gap:12px;margin-top:15px;flex-wrap:wrap;align-items:center;}
+        .map-controls .btn-primary{padding:8px 16px;font-size:12px;}
+        
         .card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
         .card-title{font-size:16px;font-weight:bold;color:#0f3460;margin-bottom:15px;display:flex;align-items:center;gap:10px;}
+        .card-title .badge{font-size:11px;font-weight:normal;padding:2px 10px;border-radius:20px;color:white;}
+        .badge-pending{background:#f59e0b;}
+        
+        .request-item{display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f3f4f6;align-items:center;flex-wrap:wrap;gap:8px;}
+        .request-item:hover{background:#f8fafc;}
+        .request-item .btn-group{display:flex;gap:8px;}
+        .request-item .btn-group button{padding:6px 14px;border:none;border-radius:8px;cursor:pointer;font-weight:600;font-size:12px;}
+        .btn-approve{background:#10b981;color:white;}
+        .btn-approve:hover{background:#059669;}
+        .btn-reject{background:#e94560;color:white;}
+        .btn-reject:hover{background:#c73652;}
+        
         .employee-table{width:100%;border-collapse:collapse;font-size:14px;}
         .employee-table th{background:#f8fafc;padding:12px;text-align:left;font-weight:600;color:#0f3460;border-bottom:2px solid #e5e7eb;}
         .employee-table td{padding:12px;border-bottom:1px solid #f3f4f6;}
@@ -54,16 +75,17 @@
         .employee-table .status-badge{padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;}
         .status-available{background:#dcfce7;color:#16a34a;}
         .status-busy{background:#fef3c7;color:#d97706;}
+        
         .ride-item{display:flex;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #f3f4f6;align-items:center;}
         .ride-item:hover{background:#f8fafc;}
         .status-badge{padding:3px 12px;border-radius:20px;font-size:11px;font-weight:600;}
         .status-progress{background:#dcfce7;color:#16a34a;}
-        .status-assigned{background:#fef3c7;color:#d97706;}
         .status-completed{background:#e5e7eb;color:#6b7280;}
         .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
         .filter-btn{padding:8px 18px;border:1px solid #e5e7eb;background:white;border-radius:20px;cursor:pointer;font-size:12px;transition:0.2s;}
         .filter-btn:hover{background:#f3f4f6;}
         .filter-btn.active{background:#0f3460;color:white;border-color:#0f3460;}
+        
         .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;animation:fadeIn 0.3s;}
         @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
         .modal-content{background:white;padding:30px;border-radius:16px;width:500px;max-width:90%;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s;}
@@ -71,67 +93,86 @@
         .modal-content h3{margin-bottom:15px;color:#0f3460;}
         .modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:12px;margin:10px 0;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;transition:0.2s;}
         .modal-content input:focus,.modal-content select:focus,.modal-content textarea:focus{outline:2px solid #0f3460;}
+        
         .add-employee-form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;}
         .add-employee-form input{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;min-width:150px;transition:0.2s;}
         .add-employee-form input:focus{outline:2px solid #0f3460;}
-        .password-section{background:#f8fafc;padding:16px;border-radius:12px;margin-top:10px;border:1px solid #e5e7eb;}
-        .password-section .flex-row{display:flex;gap:10px;flex-wrap:wrap;}
-        .password-section select,.password-section input{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;min-width:120px;}
-        .password-message{padding:10px 14px;border-radius:8px;margin-top:10px;display:none;font-size:13px;font-weight:500;}
-        .password-message.success{background:#dcfce7;color:#166534;display:block;}
-        .password-message.error{background:#fee2e2;color:#991b1b;display:block;}
+        
         .debug{background:#1f2937;color:#10b981;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;max-height:150px;overflow-y:auto;}
-        .format-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0;}
+        .debug::-webkit-scrollbar{width:4px;}
+        .debug::-webkit-scrollbar-thumb{background:#10b981;border-radius:4px;}
+        
         .company-footer{text-align:center;padding:20px;color:#6b7280;font-size:12px;border-top:1px solid #e5e7eb;margin-top:20px;}
         .company-footer strong{color:#0f3460;}
         .company-footer span{color:#e94560;}
-        .attendance-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:15px 0;}
-        .attendance-stat{background:#f8fafc;padding:12px;border-radius:12px;text-align:center;}
-        .attendance-stat .num{font-size:24px;font-weight:bold;color:#0f3460;}
-        .attendance-stat .lbl{font-size:11px;color:#6b7280;}
-        @media (max-width:768px){.stats-grid{grid-template-columns:repeat(3,1fr);}.map-wrapper{height:300px;}.header{flex-direction:column;text-align:center;}}
-        @media (max-width:480px){.stats-grid{grid-template-columns:repeat(2,1fr);}.format-grid{grid-template-columns:1fr;}}
+        
+        .admin-tools{background:#fef3c7;padding:12px 16px;border-radius:10px;border:1px solid #fde68a;margin-top:10px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;}
+        .admin-tools span{font-weight:600;color:#92400e;font-size:13px;}
+        
+        @media (max-width:768px){
+            .stats-grid{grid-template-columns:repeat(3,1fr);}
+            .map-wrapper{height:300px;}
+            .header{flex-direction:column;text-align:center;}
+            .admin-tools{flex-direction:column;align-items:stretch;}
+        }
+        @media (max-width:480px){
+            .stats-grid{grid-template-columns:repeat(2,1fr);}
+        }
     </style>
 </head>
 <body>
     <script>
-        if (!Storage.isAdminLoggedIn()) { window.location.href = 'admin-login.html'; }
+        if (typeof Storage.isAdminLoggedIn === 'function') {
+            if (!Storage.isAdminLoggedIn()) { 
+                window.location.href = 'admin-login.html'; 
+            }
+        }
+        
         function handleAdminLogout() {
-            if (confirm('Are you sure you want to logout from Admin?')) {
-                Storage.adminLogout();
+            if (confirm('Are you sure you want to logout?')) {
+                if (typeof Storage.adminLogout === 'function') {
+                    Storage.adminLogout();
+                }
                 window.location.href = 'admin-login.html';
             }
         }
     </script>
     
     <div class="container">
+        <!-- Header -->
         <div class="header">
             <div>
                 <h1>🏢 M <span>Creations</span></h1>
                 <div class="subtitle">Field Service & Delivery Tracking System</div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                <button class="btn btn-primary" onclick="showCreateForm()">➕ New Request</button>
-                <button class="btn btn-success" onclick="showReportModal()">📊 Export</button>
+                <button class="btn btn-excel" onclick="exportExcelReport()">📊 Export Excel</button>
                 <button class="btn btn-secondary" onclick="scrollToEmployees()">👥 Employees</button>
                 <button class="btn btn-danger" onclick="handleAdminLogout()">🚪 Logout</button>
             </div>
         </div>
         
+        <!-- Stats -->
         <div class="stats-grid">
             <div class="stat-card"><div class="label">Active Rides</div><div class="value accent" id="activeCount">0</div></div>
             <div class="stat-card"><div class="label">Live Tracking</div><div class="value success" id="liveCount">0</div></div>
             <div class="stat-card"><div class="label">Online Employees</div><div class="value success" id="onlineCount">0</div></div>
             <div class="stat-card"><div class="label">Total Employees</div><div class="value" id="totalEmployees">0</div></div>
-            <div class="stat-card"><div class="label">Total Services</div><div class="value" id="totalCount">0</div></div>
+            <div class="stat-card"><div class="label">Pending Requests</div><div class="value warning" id="pendingRequests">0</div></div>
         </div>
         
+        <!-- Login Requests Section -->
+        <div class="card">
+            <div class="card-title">📋 Remote Login Requests <span class="badge badge-pending" id="requestBadge">Pending: 0</span></div>
+            <div id="requestsContainer"><p style="color:#6b7280;text-align:center;padding:20px;">No pending requests</p></div>
+        </div>
+        
+        <!-- Live Map -->
         <div class="map-container">
             <div class="card-title">📍 Live Employee Tracking <span class="live-indicator" style="font-size:10px;padding:2px 10px;">● LIVE</span></div>
             <div class="map-wrapper" id="mapWrapper"><div id="mapCanvas"></div></div>
             <div class="map-controls">
                 <button class="btn btn-primary" onclick="centerMap()">🎯 Center</button>
-                <button class="btn btn-secondary" onclick="toggleDemo()">🎲 Demo</button>
                 <span style="margin-left:auto;font-size:12px;color:#6b7280;">🔄 Updates: <span id="lastUpdate">Just now</span></span>
             </div>
         </div>
@@ -143,95 +184,72 @@
                 <button class="btn btn-primary" onclick="loadTodayAttendance()">📅 Today</button>
                 <button class="btn btn-secondary" onclick="loadWeeklyAttendance()">📊 This Week</button>
                 <button class="btn btn-secondary" onclick="loadAllAttendance()">📋 All</button>
-                <button class="btn btn-success" onclick="exportAttendance()">📥 Export</button>
+                <button class="btn btn-excel" onclick="exportExcelReport()">📊 Export Excel</button>
+                <button class="btn btn-clear-today" onclick="clearTodayAttendance()">🗑️ Clear Today</button>
+                <button class="btn btn-clear-all" onclick="clearAllAttendance()">🗑️ Clear All</button>
             </div>
             <div id="attendanceContainer"><p style="color:#6b7280;text-align:center;padding:20px;">Loading attendance data...</p></div>
+            
+            <!-- Admin Tools -->
+            <div class="admin-tools">
+                <span>⚠️ Admin Tools:</span>
+                <button onclick="clearTodayAttendance()" style="padding:4px 14px;background:#f59e0b;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">🗑️ Clear Today</button>
+                <button onclick="clearAllAttendance()" style="padding:4px 14px;background:#dc2626;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">🗑️ Clear All</button>
+                <button onclick="clearAllData()" style="padding:4px 14px;background:#0f3460;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">⚠️ Reset System</button>
+                <span style="font-size:11px;color:#6b7280;">(⚠️ This will delete ALL data)</span>
+            </div>
         </div>
         
+        <!-- Employee Management -->
         <div id="employeeSection" class="card">
-            <div class="card-title">👥 Employee Management <span style="font-size:12px;color:#6b7280;font-weight:normal;">Add, remove, or manage passwords</span></div>
+            <div class="card-title">👥 Employee Management</div>
             <div class="add-employee-form">
                 <input type="text" id="newEmployeeName" placeholder="Employee Name" style="flex:2;">
                 <input type="tel" id="newEmployeeContact" placeholder="Contact Number" style="flex:1;">
-                <button class="btn btn-success" onclick="addEmployee()">➕ Add Employee</button>
-            </div>
-            <div class="password-section">
-                <div style="font-weight:600;color:#0f3460;margin-bottom:10px;">🔑 Password Management</div>
-                <p style="font-size:13px;color:#6b7280;margin-bottom:12px;">Reset employee passwords. Default: <strong>name + "123"</strong></p>
-                <div class="flex-row">
-                    <select id="passwordEmployeeSelect"><option value="">Select Employee</option></select>
-                    <input type="text" id="newPasswordInput" placeholder="New Password (min 4 chars)">
-                    <button class="btn btn-warning" onclick="resetPassword()">🔄 Reset Password</button>
-                </div>
-                <div id="passwordMessage" class="password-message"></div>
+                <button class="btn btn-success" onclick="addEmployee()">➕ Add</button>
             </div>
             <div style="overflow-x:auto;margin-top:15px;">
                 <table class="employee-table" id="employeeTable">
-                    <thead><tr><th>ID</th><th>Name</th><th>Contact</th><th>Status</th><th>Join Date</th><th>Action</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Contact</th>
+                            <th>Status</th>
+                            <th>Join Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
                     <tbody id="employeeTableBody"></tbody>
                 </table>
             </div>
         </div>
         
+        <!-- Service Requests -->
         <div class="card">
-            <div class="card-title">📋 Service Requests</div>
+            <div class="card-title">📋 Service Requests <span style="font-size:12px;color:#6b7280;font-weight:normal;">Engineers self-assign rides</span></div>
             <div class="filter-bar">
                 <button class="filter-btn active" onclick="filterRides('all')">All</button>
-                <button class="filter-btn" onclick="filterRides('assigned')">Assigned</button>
                 <button class="filter-btn" onclick="filterRides('in_progress')">🟢 In Progress</button>
-                <button class="filter-btn" onclick="filterRides('completed')">Completed</button>
+                <button class="filter-btn" onclick="filterRides('completed')">✅ Completed</button>
             </div>
             <div id="ridesList"></div>
         </div>
         
+        <!-- Debug -->
         <div class="card">
             <div class="card-title">🔍 System Log</div>
             <div id="debugLog" class="debug">[M Creations System Ready]</div>
         </div>
         
+        <!-- Footer -->
         <div class="company-footer"><strong>🏢 M <span>Creations</span></strong> — Field Service Excellence © 2026</div>
-    </div>
-    
-    <div id="createModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>📝 New Service Request</h3>
-            <form id="requestForm">
-                <input type="text" id="customerName" placeholder="Customer Name" required>
-                <input type="tel" id="customerMobile" placeholder="Mobile Number" required>
-                <textarea id="customerAddress" placeholder="Customer Address" rows="3" required></textarea>
-                <select id="employeeId" required><option value="">Select Field Engineer</option></select>
-                <div style="display:flex;gap:10px;margin-top:15px;">
-                    <button type="submit" class="btn btn-primary" style="flex:1;">✅ Create</button>
-                    <button type="button" onclick="closeModal('createModal')" style="flex:1;padding:10px;border:1px solid #e5e7eb;border-radius:10px;cursor:pointer;">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <div id="reportModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <h3>📊 Export Report</h3>
-            <p style="color:#6b7280;font-size:13px;margin-bottom:10px;">Select period and format</p>
-            <select id="reportPeriod" style="width:100%;padding:12px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;margin:10px 0;">
-                <option value="daily">📅 Daily (Today)</option>
-                <option value="weekly">📊 Weekly (7 Days)</option>
-                <option value="monthly">📈 Monthly (30 Days)</option>
-                <option value="all">📋 All Time</option>
-            </select>
-            <div class="format-grid">
-                <button onclick="exportReport('excel')" class="btn btn-success">📊 Excel</button>
-                <button onclick="exportReport('word')" class="btn btn-word">📝 Word</button>
-                <button onclick="exportReport('csv')" class="btn btn-primary">📄 CSV</button>
-            </div>
-            <button onclick="closeModal('reportModal')" style="width:100%;padding:10px;background:#e5e7eb;border:none;border-radius:10px;cursor:pointer;margin-top:10px;">Cancel</button>
-        </div>
     </div>
     
     <script src="js/app.js"></script>
     <script>
         let currentFilter = 'all';
         let employees = [], rides = [], liveLocations = {};
-        let demoInterval = null, demoMode = false;
         
         function log(msg) {
             const d = document.getElementById('debugLog');
@@ -242,51 +260,166 @@
         
         function init() {
             log('🚀 M Creations System Starting...');
+            
+            if (typeof Storage === 'undefined') {
+                log('❌ Storage not loaded!');
+                return;
+            }
+            
             loadData();
             renderMap();
             updateStats();
             renderRides();
             renderEmployees();
-            loadPasswordEmployees();
+            loadRequests();
             setTimeout(loadTodayAttendance, 500);
             
             setInterval(() => {
-                const newLoc = Storage.getLiveLocations();
-                if (JSON.stringify(newLoc) !== JSON.stringify(liveLocations)) {
-                    liveLocations = newLoc;
-                    renderMap();
-                    updateStats();
-                    renderRides();
-                    document.getElementById('lastUpdate').textContent = 'Just now';
+                if (typeof Storage.getLiveLocations === 'function') {
+                    const newLoc = Storage.getLiveLocations();
+                    if (JSON.stringify(newLoc) !== JSON.stringify(liveLocations)) {
+                        liveLocations = newLoc;
+                        renderMap();
+                        updateStats();
+                        renderRides();
+                        document.getElementById('lastUpdate').textContent = 'Just now';
+                    }
                 }
             }, 2000);
+            
             setInterval(() => {
-                const newRides = Storage.getRides();
-                if (newRides.length !== rides.length) { loadData(); renderRides(); updateStats(); renderEmployees(); }
+                loadRequests();
+                updateStats();
+                renderEmployees();
             }, 5000);
-            window.addEventListener('locationUpdate', () => { liveLocations = Storage.getLiveLocations(); renderMap(); updateStats(); });
+            
+            window.addEventListener('locationUpdate', function() { 
+                if (typeof Storage.getLiveLocations === 'function') {
+                    liveLocations = Storage.getLiveLocations(); 
+                    renderMap(); 
+                    updateStats(); 
+                }
+            });
         }
         
         function loadData() {
-            employees = Storage.getEmployees();
-            rides = Storage.getRides();
-            liveLocations = Storage.getLiveLocations();
-            log(`📊 ${rides.length} rides, ${employees.length} employees, ${Object.keys(liveLocations).length} locations`);
+            try {
+                employees = Storage.getEmployees();
+                rides = Storage.getRides();
+                liveLocations = Storage.getLiveLocations();
+                log(`📊 ${rides.length} rides, ${employees.length} employees`);
+            } catch(e) {
+                console.error('Error loading data:', e);
+            }
+        }
+        
+        // ============================================
+        // LOGIN REQUESTS
+        // ============================================
+        
+        function loadRequests() {
+            try {
+                const requests = Storage.getPendingLoginRequests();
+                const container = document.getElementById('requestsContainer');
+                const badge = document.getElementById('requestBadge');
+                
+                if (badge) badge.textContent = `Pending: ${requests.length}`;
+                
+                if (!container) return;
+                
+                if (requests.length === 0) {
+                    container.innerHTML = '<p style="color:#6b7280;text-align:center;padding:20px;">No pending requests</p>';
+                    return;
+                }
+                
+                container.innerHTML = requests.map(req => {
+                    const dist = Storage.calculateDistance(req.lat, req.lng, Storage.OFFICE_LAT, Storage.OFFICE_LNG);
+                    const distMeters = (dist * 1000).toFixed(0);
+                    return `
+                        <div class="request-item">
+                            <div>
+                                <strong>${req.employeeName}</strong>
+                                <span style="font-size:12px;color:#6b7280;display:block;">
+                                    📍 ${req.lat.toFixed(6)}, ${req.lng.toFixed(6)}
+                                    <br>📏 ${distMeters}m from office
+                                    <br>🕒 ${new Date(req.timestamp).toLocaleTimeString()}
+                                </span>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn-approve" onclick="approveRequest('${req.id}')">✅ Approve</button>
+                                <button class="btn-reject" onclick="rejectRequest('${req.id}')">❌ Reject</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch(e) {
+                console.error('Error loading requests:', e);
+            }
+        }
+        
+        function approveRequest(requestId) {
+            if (confirm('Approve this login request?')) {
+                if (Storage.approveLoginRequest(requestId)) {
+                    log(`✅ Request ${requestId} approved`);
+                    loadRequests();
+                    updateStats();
+                    alert('✅ Request approved! Employee can now login.');
+                }
+            }
+        }
+        
+        function rejectRequest(requestId) {
+            if (confirm('Reject this login request?')) {
+                if (Storage.rejectLoginRequest(requestId)) {
+                    log(`❌ Request ${requestId} rejected`);
+                    loadRequests();
+                    updateStats();
+                    alert('❌ Request rejected.');
+                }
+            }
         }
         
         // ============================================
         // EMPLOYEE MANAGEMENT
         // ============================================
+        
         function renderEmployees() {
             const tbody = document.getElementById('employeeTableBody');
             if (!tbody) return;
-            if (employees.length === 0) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:20px;">No employees added yet</td></tr>`; return; }
+            
+            try {
+                employees = Storage.getEmployees();
+            } catch(e) {
+                console.error('Error getting employees:', e);
+                return;
+            }
+            
+            if (!employees || employees.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:20px;">No employees added yet</td></tr>`;
+                document.getElementById('totalEmployees').textContent = '0';
+                return;
+            }
+            
             tbody.innerHTML = employees.map(emp => {
                 const hasActiveRide = rides.some(r => r.employeeId === emp.id && r.status !== 'completed');
                 const statusClass = hasActiveRide ? 'status-busy' : 'status-available';
                 const statusText = hasActiveRide ? '🟡 On Duty' : '🟢 Available';
-                return `<tr><td><strong>${emp.id}</strong></td><td>${emp.name}</td><td>${emp.contact || 'N/A'}</td><td><span class="status-badge ${statusClass}">${statusText}</span></td><td>${emp.joinDate || 'N/A'}</td><td><button class="btn btn-danger" style="padding:5px 12px;font-size:11px;" onclick="deleteEmployee('${emp.id}')">🗑️ Delete</button></td></tr>`;
+                return `
+                    <tr>
+                        <td><strong>${emp.id}</strong></td>
+                        <td>${emp.name}</td>
+                        <td>${emp.contact || 'N/A'}</td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${emp.joinDate || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-danger" style="padding:5px 12px;font-size:11px;" onclick="deleteEmployee('${emp.id}')">🗑️ Delete</button>
+                        </td>
+                    </tr>
+                `;
             }).join('');
+            
+            document.getElementById('totalEmployees').textContent = employees.length;
+            log(`✅ Rendered ${employees.length} employees`);
         }
         
         function addEmployee() {
@@ -294,206 +427,335 @@
             const contactInput = document.getElementById('newEmployeeContact');
             const name = nameInput.value.trim();
             const contact = contactInput.value.trim();
-            if (!name) { alert('Please enter an employee name'); nameInput.focus(); return; }
-            if (!contact) { alert('Please enter a contact number'); contactInput.focus(); return; }
-            if (!/^[0-9]{10}$/.test(contact)) { alert('Please enter a valid 10-digit contact number'); contactInput.focus(); return; }
-            if (employees.some(e => e.name.toLowerCase() === name.toLowerCase())) { alert('❌ Employee with this name already exists'); return; }
+            
+            if (!name) { 
+                alert('Please enter employee name'); 
+                nameInput.focus(); 
+                return; 
+            }
+            
+            if (!contact) { 
+                alert('Please enter contact number'); 
+                contactInput.focus(); 
+                return; 
+            }
+            
+            if (!/^[0-9]{10}$/.test(contact)) { 
+                alert('Enter valid 10-digit number'); 
+                contactInput.focus(); 
+                return; 
+            }
+            
+            const existing = Storage.getEmployees();
+            if (existing.some(e => e.name.toLowerCase() === name.toLowerCase())) {
+                alert('❌ Employee with this name already exists');
+                nameInput.value = '';
+                nameInput.focus();
+                return;
+            }
+            
             const newEmp = Storage.addEmployee(name, contact);
-            loadData(); renderEmployees(); renderRides(); updateStats(); loadPasswordEmployees();
-            nameInput.value = ''; contactInput.value = '';
+            if (!newEmp) {
+                alert('❌ Failed to add employee');
+                return;
+            }
+            
             log(`✅ Employee added: ${newEmp.name} (${newEmp.id})`);
-            alert(`✅ Employee "${newEmp.name}" added successfully!\n📱 Contact: ${newEmp.contact}\n🔑 Default Password: ${name.toLowerCase()}123`);
+            
+            employees = Storage.getEmployees();
+            renderEmployees();
+            renderRides();
+            updateStats();
+            
+            nameInput.value = '';
+            contactInput.value = '';
+            
+            alert(`✅ Employee "${name}" added!\n🔑 Default Password: ${name.toLowerCase()}123`);
         }
         
-        function deleteEmployee(employeeId) {
-            const emp = employees.find(e => e.id === employeeId);
-            if (!emp) return;
-            if (!confirm(`⚠️ Are you sure you want to delete "${emp.name}"?`)) return;
-            if (Storage.deleteEmployee(employeeId)) { loadData(); renderEmployees(); renderRides(); updateStats(); loadPasswordEmployees(); log(`🗑️ Employee deleted: ${emp.name}`); alert(`✅ Employee "${emp.name}" deleted successfully!`); }
+        function deleteEmployee(id) {
+            if (!confirm('Delete this employee?')) return;
+            if (Storage.deleteEmployee(id)) {
+                employees = Storage.getEmployees();
+                renderEmployees();
+                renderRides();
+                updateStats();
+                log(`🗑️ Employee deleted: ${id}`);
+            }
         }
         
-        function scrollToEmployees() { document.getElementById('employeeSection').scrollIntoView({ behavior: 'smooth' }); document.getElementById('newEmployeeName').focus(); }
-        
-        function loadPasswordEmployees() {
-            const select = document.getElementById('passwordEmployeeSelect');
-            if (!select) return;
-            const emps = Storage.getEmployees();
-            select.innerHTML = '<option value="">Select Employee</option>';
-            emps.forEach(emp => { select.innerHTML += `<option value="${emp.id}">${emp.name} (${emp.id})</option>`; });
-        }
-        
-        function resetPassword() {
-            const select = document.getElementById('passwordEmployeeSelect');
-            const empId = select.value;
-            const newPassword = document.getElementById('newPasswordInput').value.trim();
-            const msgDiv = document.getElementById('passwordMessage');
-            if (!empId) { msgDiv.className = 'password-message error'; msgDiv.textContent = '❌ Please select an employee'; return; }
-            if (!newPassword || newPassword.length < 4) { msgDiv.className = 'password-message error'; msgDiv.textContent = '❌ Password must be at least 4 characters'; return; }
-            if (Storage.updateEmployeePassword(empId, newPassword)) {
-                const emp = Storage.getEmployeeById(empId);
-                msgDiv.className = 'password-message success';
-                msgDiv.textContent = `✅ Password updated for ${emp.name}. New password: "${newPassword}"`;
-                document.getElementById('newPasswordInput').value = '';
-                log(`🔑 Password reset for ${emp.name}`);
-                setTimeout(() => { msgDiv.className = 'password-message'; msgDiv.textContent = ''; }, 5000);
-            } else { msgDiv.className = 'password-message error'; msgDiv.textContent = '❌ Failed to update password'; }
+        function scrollToEmployees() { 
+            document.getElementById('employeeSection').scrollIntoView({ behavior: 'smooth' }); 
         }
         
         // ============================================
-        // ATTENDANCE FUNCTIONS
+        // ✅ ATTENDANCE FUNCTIONS WITH CLEAR OPTIONS
         // ============================================
         
         function loadTodayAttendance() {
-            const attendance = Storage.getTodayAttendance();
-            renderAttendance(attendance, "Today's Attendance");
+            try {
+                const attendance = Storage.getTodayAttendance();
+                renderAttendance(attendance, "Today's Attendance");
+            } catch(e) {
+                console.error('Error loading today attendance:', e);
+            }
         }
         
         function loadWeeklyAttendance() {
-            const today = new Date();
-            const weekAgo = new Date();
-            weekAgo.setDate(today.getDate() - 7);
-            const attendance = Storage.getAttendanceReport(weekAgo.toISOString().split('T')[0], today.toISOString().split('T')[0]);
-            renderAttendance(attendance, `Weekly Attendance`);
+            try {
+                const today = new Date();
+                const weekAgo = new Date(); 
+                weekAgo.setDate(today.getDate() - 7);
+                const attendance = Storage.getAttendanceReport(weekAgo.toISOString().split('T')[0], today.toISOString().split('T')[0]);
+                renderAttendance(attendance, 'Weekly Attendance');
+            } catch(e) {
+                console.error('Error loading weekly attendance:', e);
+            }
         }
         
         function loadAllAttendance() {
-            const attendance = Storage.getAttendance();
-            renderAttendance(attendance, 'All Attendance Records');
+            try {
+                const attendance = Storage.getAttendance();
+                renderAttendance(attendance, 'All Attendance Records');
+            } catch(e) {
+                console.error('Error loading all attendance:', e);
+            }
         }
         
         function renderAttendance(attendance, title) {
             const container = document.getElementById('attendanceContainer');
-            if (attendance.length === 0) {
-                container.innerHTML = `<p style="color:#6b7280;text-align:center;padding:20px;">No attendance records found</p>`;
+            if (!container) return;
+            
+            if (!attendance || attendance.length === 0) {
+                container.innerHTML = `<p style="color:#6b7280;text-align:center;padding:20px;">No records</p>`;
                 return;
             }
             
             const grouped = {};
-            attendance.forEach(a => { if (!grouped[a.date]) { grouped[a.date] = []; } grouped[a.date].push(a); });
+            attendance.forEach(a => { 
+                if (!grouped[a.date]) { 
+                    grouped[a.date] = []; 
+                } 
+                grouped[a.date].push(a); 
+            });
             
             let html = `<h4 style="color:#0f3460;margin-bottom:10px;">${title}</h4>`;
-            html += `<div style="overflow-x:auto;"><table class="employee-table"><thead><tr><th>Date</th><th>Employee</th><th>Login Time</th><th>Status</th><th>Rides</th><th>KM</th></tr></thead><tbody>`;
+            html += `<div style="overflow-x:auto;"><table class="employee-table"><thead><tr><th>Date</th><th>Employee</th><th>Login Time</th><th>Check-in Location</th><th>Status</th><th>Rides</th><th>KM</th></tr></thead><tbody>`;
             
             const sortedDates = Object.keys(grouped).sort().reverse();
             sortedDates.forEach(date => {
                 const records = grouped[date];
                 const dateObj = new Date(date);
-                html += `<tr style="background:#f8fafc;font-weight:bold;"><td colspan="6" style="padding:8px 12px;">📅 ${dateObj.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })} (${records.length} employees)</td></tr>`;
+                html += `<tr style="background:#f8fafc;font-weight:bold;"><td colspan="7" style="padding:8px 12px;">📅 ${dateObj.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })} (${records.length} employees)</td></tr>`;
                 records.forEach(a => {
                     const loginTime = a.loginTime ? new Date(a.loginTime).toLocaleTimeString() : 'N/A';
+                    const location = a.checkinLat ? `${a.checkinLat.toFixed(6)}, ${a.checkinLng.toFixed(6)}` : 'N/A';
                     const statusBadge = a.status === 'present' ? '<span style="color:#10b981;font-weight:bold;">✅ Present</span>' : '<span style="color:#ef4444;font-weight:bold;">❌ Absent</span>';
-                    html += `<tr><td style="font-size:12px;color:#6b7280;">${date}</td><td><strong>${a.employeeName}</strong></td><td>${loginTime}</td><td>${statusBadge}</td><td>${a.ridesCompleted || 0}</td><td>${(a.totalKM || 0).toFixed(2)}</td></tr>`;
+                    const type = a.checkinType === 'auto' ? '🏢 Office' : a.checkinType === 'remote_approved' ? '📱 Remote (Approved)' : '📱 Remote';
+                    html += `<tr><td style="font-size:12px;color:#6b7280;">${date}</td><td><strong>${a.employeeName}</strong><br><span style="font-size:10px;color:#6b7280;">${type}</span></td><td>${loginTime}</td><td style="font-size:11px;">${location}</td><td>${statusBadge}</td><td>${a.ridesCompleted || 0}</td><td>${(a.totalKM || 0).toFixed(2)}</td></tr>`;
                 });
             });
             
             const totalPresent = attendance.filter(a => a.status === 'present').length;
             const totalRides = attendance.reduce((sum, a) => sum + (a.ridesCompleted || 0), 0);
             const totalKM = attendance.reduce((sum, a) => sum + (a.totalKM || 0), 0);
-            html += `<tr style="background:#e5e7eb;font-weight:bold;"><td colspan="3" style="text-align:right;">TOTAL:</td><td>${totalPresent} Present</td><td>${totalRides}</td><td>${totalKM.toFixed(2)} KM</td></tr>`;
+            html += `<tr style="background:#e5e7eb;font-weight:bold;"><td colspan="4" style="text-align:right;">TOTAL:</td><td>${totalPresent} Present</td><td>${totalRides}</td><td>${totalKM.toFixed(2)} KM</td></tr>`;
             html += `</tbody></table></div>`;
             container.innerHTML = html;
         }
         
-        function exportAttendance() {
-            const attendance = Storage.getAttendance();
-            if (attendance.length === 0) { alert('No attendance data to export'); return; }
-            let csv = "Date,Employee Name,Login Time,Status,Rides Completed,Total KM\n";
-            attendance.forEach(a => {
-                const loginTime = a.loginTime ? new Date(a.loginTime).toLocaleTimeString() : 'N/A';
-                const status = a.status === 'present' ? 'Present' : 'Absent';
-                csv += `"${a.date}","${a.employeeName}","${loginTime}","${status}","${a.ridesCompleted || 0}","${(a.totalKM || 0).toFixed(2)}"\n`;
-            });
-            const totalPresent = attendance.filter(a => a.status === 'present').length;
-            const totalRides = attendance.reduce((sum, a) => sum + (a.ridesCompleted || 0), 0);
-            const totalKM = attendance.reduce((sum, a) => sum + (a.totalKM || 0), 0);
-            csv += `\n"SUMMARY","Total Present: ${totalPresent}","Total Rides: ${totalRides}","Total KM: ${totalKM.toFixed(2)}","",""\n`;
-            
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `attendance-report-${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            alert('✅ Attendance report exported successfully!');
+        // ✅ CLEAR TODAY'S ATTENDANCE
+        function clearTodayAttendance() {
+            if (confirm('⚠️ Delete today\'s attendance records?')) {
+                const today = new Date().toISOString().split('T')[0];
+                let attendance = Storage.getAttendance();
+                attendance = attendance.filter(a => a.date !== today);
+                Storage.saveAttendance(attendance);
+                alert(`✅ Deleted attendance for ${today}`);
+                loadTodayAttendance();
+                updateStats();
+                log(`🗑️ Today's attendance cleared`);
+            }
+        }
+        
+        // ✅ CLEAR ALL ATTENDANCE
+        function clearAllAttendance() {
+            if (confirm('⚠️ Are you sure you want to delete ALL attendance records?')) {
+                if (confirm('⚠️ This cannot be undone! Delete ALL?')) {
+                    Storage.saveAttendance([]);
+                    alert('✅ All attendance records deleted!');
+                    loadAllAttendance();
+                    updateStats();
+                    log('🗑️ All attendance cleared');
+                }
+            }
+        }
+        
+        // ✅ CLEAR ALL DATA (Complete Reset)
+        function clearAllData() {
+            if (confirm('⚠️ This will delete ALL data (Employees, Rides, Attendance, Requests). Continue?')) {
+                if (confirm('⚠️ FINAL WARNING: This cannot be undone!')) {
+                    localStorage.removeItem('employees');
+                    localStorage.removeItem('rides');
+                    localStorage.removeItem('attendance');
+                    localStorage.removeItem('loginRequests');
+                    localStorage.removeItem('liveLocations');
+                    localStorage.removeItem('rideCounter');
+                    alert('✅ All data cleared! Refreshing...');
+                    location.reload();
+                }
+            }
         }
         
         // ============================================
-        // MAP FUNCTIONS
+        // EXCEL EXPORT
+        // ============================================
+        
+        function exportExcelReport() {
+            try {
+                const html = Storage.generateExcelReport();
+                const blob = new Blob([html], { 
+                    type: 'application/vnd.ms-excel;charset=utf-8' 
+                });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `daily-report-${new Date().toISOString().split('T')[0]}.xls`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                alert('✅ Excel report downloaded!');
+            } catch(e) {
+                console.error('Error exporting Excel:', e);
+                alert('❌ Failed to export Excel report');
+            }
+        }
+        
+        // ============================================
+        // MAP & RIDE FUNCTIONS
         // ============================================
         
         function renderMap() {
             const container = document.getElementById('mapCanvas');
+            if (!container) return;
+            
             const activeRides = rides.filter(r => r.status === 'in_progress');
+            const allLocations = Storage.getLiveLocations();
+            
             container.innerHTML = `<div style="position:relative;width:100%;height:100%;background:#f0f4f8;">
                 <div style="position:absolute;top:50%;left:0;width:100%;height:1px;background:#cbd5e1;"></div>
                 <div style="position:absolute;top:30%;left:0;width:100%;height:1px;background:#cbd5e1;border-top:2px dashed #cbd5e1;"></div>
                 <div style="position:absolute;top:70%;left:0;width:100%;height:1px;background:#cbd5e1;border-top:2px dashed #cbd5e1;"></div>
                 <div style="position:absolute;top:0;left:50%;width:1px;height:100%;background:#cbd5e1;"></div>
-                <div style="position:absolute;top:10px;left:10px;font-size:11px;color:#6b7280;background:rgba(255,255,255,0.9);padding:4px 12px;border-radius:8px;">M Creations Live Map</div>
+                <div style="position:absolute;top:10px;left:10px;font-size:11px;color:#6b7280;background:rgba(255,255,255,0.9);padding:4px 12px;border-radius:8px;">📍 Office: Kalaburagi</div>
+                <div style="position:absolute;bottom:10px;right:10px;font-size:11px;color:#6b7280;background:rgba(255,255,255,0.9);padding:4px 12px;border-radius:8px;">⭕ 100m Radius</div>
             </div>`;
             
-            if (activeRides.length === 0) {
-                container.innerHTML += `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#6b7280;"><div style="font-size:48px;margin-bottom:10px;">📍</div><p style="font-weight:600;color:#0f3460;">No Active Services</p><p style="font-size:13px;">Start a ride to track live location</p></div>`;
-                return;
+            const officeX = 50, officeY = 50;
+            const radiusPx = 40;
+            container.innerHTML += `<div style="position:absolute;top:${officeY-radiusPx/2}%;left:${officeX-radiusPx/2}%;width:${radiusPx}%;height:${radiusPx}%;border-radius:50%;border:2px dashed #0f3460;opacity:0.3;pointer-events:none;"></div>`;
+            container.innerHTML += `<div style="position:absolute;top:${officeY-1}%;left:${officeX-1}%;width:2%;height:2%;background:#0f3460;border-radius:50%;pointer-events:none;"></div>`;
+            
+            const activeEmployees = [];
+            
+            for (const key in allLocations) {
+                if (key.startsWith('EMP_')) {
+                    const loc = allLocations[key];
+                    const emp = employees.find(e => e.id === loc.employeeId);
+                    if (emp) {
+                        activeEmployees.push({
+                            lat: loc.lat,
+                            lng: loc.lng,
+                            employeeName: emp.name,
+                            employeeId: emp.id,
+                            customerId: '📍 Live'
+                        });
+                    }
+                }
             }
             
             activeRides.forEach(ride => {
-                const loc = liveLocations[ride.id];
-                const emp = employees.find(e => e.id === ride.employeeId);
-                const hasLoc = loc && loc.lat && loc.lng;
+                const loc = allLocations[ride.customerId] || allLocations[ride.id];
+                if (loc) {
+                    const emp = employees.find(e => e.id === ride.employeeId);
+                    if (emp && !activeEmployees.find(e => e.employeeId === emp.id)) {
+                        activeEmployees.push({
+                            lat: loc.lat,
+                            lng: loc.lng,
+                            employeeName: emp.name,
+                            employeeId: emp.id,
+                            customerId: ride.customerId || 'Ride'
+                        });
+                    }
+                }
+            });
+            
+            if (activeEmployees.length === 0) {
+                container.innerHTML += `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#6b7280;"><div style="font-size:48px;">📍</div><p style="font-weight:600;color:#0f3460;">No Active Locations</p><p style="font-size:13px;">Engineers must start a ride to share GPS</p></div>`;
+                return;
+            }
+            
+            activeEmployees.forEach((emp, index) => {
+                const hasLoc = emp.lat && emp.lng;
                 let x = 50, y = 50;
-                if (hasLoc) { x = ((loc.lng - 68) / 20) * 100; y = ((38 - loc.lat) / 30) * 100; x = Math.max(5, Math.min(95, x)); y = Math.max(5, Math.min(95, y)); }
+                if (hasLoc) { 
+                    const relativeLat = (emp.lat - 17.2) / 0.3;
+                    const relativeLng = (emp.lng - 76.7) / 0.3;
+                    x = 20 + relativeLng * 60;
+                    y = 20 + (1 - relativeLat) * 60;
+                    x = Math.max(5, Math.min(95, x));
+                    y = Math.max(5, Math.min(95, y));
+                }
                 const marker = document.createElement('div');
                 marker.className = `map-marker ${hasLoc ? 'active' : ''}`;
                 marker.style.left = x + '%';
                 marker.style.top = y + '%';
-                marker.id = `marker-${ride.id}`;
-                marker.innerHTML = `${hasLoc ? '<div class="pulse-ring"></div>' : ''}<div class="dot"></div><div class="label">${emp?.name || 'Unknown'} ${hasLoc ? '🟢' : '⚪'}</div>`;
+                marker.id = `marker-${emp.employeeId || index}`;
+                marker.innerHTML = `${hasLoc ? '<div class="pulse-ring"></div>' : ''}<div class="dot"></div><div class="label">${emp.employeeName || 'Unknown'} ${hasLoc ? '🟢' : '⚪'}<br><span style="font-size:8px;">${emp.customerId || 'Live'}</span></div>`;
                 container.appendChild(marker);
             });
         }
         
-        function centerMap() { const active = rides.filter(r => r.status === 'in_progress'); if (active.length === 0) { alert('No active services'); return; } renderMap(); }
-        
-        function toggleDemo() {
-            demoMode = !demoMode;
-            if (demoMode) {
-                document.querySelector('.map-controls .btn-secondary').textContent = '⏹ Stop';
-                const active = rides.filter(r => r.status === 'in_progress');
-                if (active.length === 0) { alert('Start a service first'); demoMode = false; document.querySelector('.map-controls .btn-secondary').textContent = '🎲 Demo'; return; }
-                let step = 0;
-                demoInterval = setInterval(() => {
-                    step++;
-                    active.forEach((ride, i) => {
-                        const cur = liveLocations[ride.id] || { lat: 25 + i*0.01, lng: 75 + i*0.01 };
-                        Storage.updateLiveLocation(ride.id, cur.lat + (Math.sin(step/10+i)*0.0003), cur.lng + (Math.cos(step/8+i)*0.0003));
-                    });
-                }, 500);
-            } else { clearInterval(demoInterval); document.querySelector('.map-controls .btn-secondary').textContent = '🎲 Demo'; }
+        function centerMap() { 
+            renderMap(); 
         }
         
         function updateStats() {
-            const active = rides.filter(r => r.status === 'in_progress');
-            const live = active.filter(r => liveLocations[r.id]);
-            const online = employees.filter(e => rides.some(r => r.employeeId === e.id && r.status === 'in_progress' && liveLocations[r.id]));
-            document.getElementById('activeCount').textContent = active.length;
-            document.getElementById('liveCount').textContent = live.length;
-            document.getElementById('onlineCount').textContent = online.length;
-            document.getElementById('totalEmployees').textContent = employees.length;
-            document.getElementById('totalCount').textContent = rides.length;
+            try {
+                const active = rides.filter(r => r.status === 'in_progress');
+                const live = active.filter(r => liveLocations[r.id] || liveLocations[r.customerId]);
+                const online = employees.filter(e => rides.some(r => r.employeeId === e.id && r.status === 'in_progress' && (liveLocations[r.id] || liveLocations[r.customerId])));
+                const pending = Storage.getPendingLoginRequests().length;
+                
+                document.getElementById('activeCount').textContent = active.length;
+                document.getElementById('liveCount').textContent = live.length;
+                document.getElementById('onlineCount').textContent = online.length;
+                document.getElementById('totalEmployees').textContent = employees.length;
+                document.getElementById('totalCount').textContent = rides.length;
+                document.getElementById('pendingRequests').textContent = pending;
+            } catch(e) {
+                console.error('Error updating stats:', e);
+            }
         }
         
         function renderRides() {
             const container = document.getElementById('ridesList');
+            if (!container) return;
+            
             let filtered = rides;
             if (currentFilter !== 'all') filtered = rides.filter(r => r.status === currentFilter);
-            if (filtered.length === 0) { container.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7280;">No service requests</div>'; return; }
+            
+            if (filtered.length === 0) { 
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7280;">No rides</div>'; 
+                return; 
+            }
+            
             container.innerHTML = filtered.map(ride => {
                 const emp = employees.find(e => e.id === ride.employeeId);
-                const isLive = ride.status === 'in_progress' && liveLocations[ride.id];
-                const cls = ride.status === 'in_progress' ? 'status-progress' : ride.status === 'assigned' ? 'status-assigned' : 'status-completed';
-                const txt = ride.status === 'in_progress' ? '🟢 Live' : ride.status === 'assigned' ? '⏳ Assigned' : '✅ Completed';
-                return `<div class="ride-item"><div><strong style="color:#0f3460;">${ride.id}</strong><span class="status-badge ${cls}">${txt}</span>${isLive ? ' ●' : ''}<div style="font-size:13px;color:#6b7280;margin-top:2px;">${ride.customerName} → ${emp?.name || 'Unassigned'} ${ride.totalDistance ? `| 📏 ${ride.totalDistance}KM` : ''}</div></div><div style="font-size:12px;color:#6b7280;">${isLive ? '📍 Live' : new Date(ride.createdAt).toLocaleTimeString()}</div></div>`;
+                const isLive = ride.status === 'in_progress' && (liveLocations[ride.id] || liveLocations[ride.customerId]);
+                const cls = ride.status === 'in_progress' ? 'status-progress' : 'status-completed';
+                const txt = ride.status === 'in_progress' ? '🟢 Live' : '✅ Completed';
+                return `<div class="ride-item"><div><span class="status-badge ${cls}">${txt}</span>${isLive ? ' ●' : ''}<div style="font-size:13px;color:#6b7280;">📱 ${ride.customerId || 'N/A'} → ${emp?.name || 'Unassigned'} ${ride.totalDistance ? `| 📏 ${ride.totalDistance}KM` : ''}</div></div><div style="font-size:12px;color:#6b7280;">${isLive ? '📍 Live' : new Date(ride.startTime || ride.createdAt).toLocaleTimeString()}</div></div>`;
             }).join('');
         }
         
@@ -504,109 +766,9 @@
             renderRides();
         }
         
-        function showCreateForm() {
-            const select = document.getElementById('employeeId');
-            select.innerHTML = '<option value="">Select Field Engineer</option>';
-            employees.forEach(emp => select.innerHTML += `<option value="${emp.id}">${emp.name} (${emp.contact || 'N/A'})</option>`);
-            document.getElementById('createModal').style.display = 'flex';
-        }
-        
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function showReportModal() { document.getElementById('reportModal').style.display = 'flex'; }
-        
-        document.getElementById('requestForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const ref = Storage.generateReference();
-            const ride = { id: ref, customerName: document.getElementById('customerName').value, customerMobile: document.getElementById('customerMobile').value, customerAddress: document.getElementById('customerAddress').value, employeeId: document.getElementById('employeeId').value, status: 'assigned', startTime: null, endTime: null, totalDistance: 0, stops: 0, createdAt: new Date().toISOString(), trackingLink: `tracking.html?id=${ref}` };
-            rides.push(ride);
-            Storage.saveRides(rides);
-            alert(`✅ Service Request Created!\n📋 Reference: ${ref}`);
-            closeModal('createModal');
-            loadData();
-            renderRides();
-            updateStats();
-            e.target.reset();
-        });
-        
-        // ============================================
-        // EXPORT FUNCTIONS
-        // ============================================
-        
-        function exportReport(format) {
-            const period = document.getElementById('reportPeriod').value;
-            const now = new Date();
-            let filtered = rides;
-            if (period === 'daily') filtered = rides.filter(r => new Date(r.createdAt).toDateString() === now.toDateString());
-            else if (period === 'weekly') { const d = new Date(); d.setDate(d.getDate()-7); filtered = rides.filter(r => new Date(r.createdAt) >= d); }
-            else if (period === 'monthly') { const d = new Date(); d.setMonth(d.getMonth()-1); filtered = rides.filter(r => new Date(r.createdAt) >= d); }
-            if (filtered.length === 0) { alert('No service data for this period'); return; }
-            
-            const rideData = filtered.map(ride => {
-                const emp = employees.find(e => e.id === ride.employeeId);
-                let km = ride.totalDistance || 0;
-                let stops = ride.stops || 0;
-                let updates = 0;
-                for (const key in liveLocations) if (key === ride.id) updates++;
-                if (km === 0 && updates > 1) {
-                    const locs = [];
-                    for (const key in liveLocations) if (key === ride.id) locs.push(liveLocations[key]);
-                    locs.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-                    let dist = 0;
-                    for (let i=1; i<locs.length; i++) {
-                        const p = locs[i-1], c = locs[i];
-                        const dLat = (c.lat-p.lat)*Math.PI/180, dLng = (c.lng-p.lng)*Math.PI/180;
-                        const a = Math.sin(dLat/2)**2 + Math.cos(p.lat*Math.PI/180)*Math.cos(c.lat*Math.PI/180)*Math.sin(dLng/2)**2;
-                        dist += 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-                    }
-                    km = Math.round(dist*100)/100;
-                }
-                return { id: ride.id, customer: ride.customerName, mobile: ride.customerMobile, employee: emp?.name || 'Unassigned', employeeContact: emp?.contact || 'N/A', status: ride.status, start: ride.startTime || 'N/A', end: ride.endTime || 'N/A', duration: ride.duration || 'N/A', km: km, stops: stops, updates: updates, created: ride.createdAt };
-            });
-            
-            const totalKM = rideData.reduce((sum, r) => sum + r.km, 0);
-            const completed = rideData.filter(r => r.status === 'completed').length;
-            const periodLabel = document.getElementById('reportPeriod').selectedOptions[0].text;
-            
-            if (format === 'word') exportWord(rideData, totalKM, completed, periodLabel, period);
-            else if (format === 'excel') exportExcel(rideData, totalKM, completed, periodLabel, period);
-            else if (format === 'csv') exportExcel(rideData, totalKM, completed, periodLabel, period);
-        }
-        
-        function exportWord(rideData, totalKM, completed, periodLabel, period) {
-            const date = new Date().toISOString().split('T')[0];
-            let tableRows = '';
-            rideData.forEach((r, i) => {
-                tableRows += `<tr><td style="border:1px solid #ddd;padding:8px;">${i+1}</td><td style="border:1px solid #ddd;padding:8px;">${r.id}</td><td style="border:1px solid #ddd;padding:8px;">${r.customer}</td><td style="border:1px solid #ddd;padding:8px;">${r.mobile}</td><td style="border:1px solid #ddd;padding:8px;">${r.employee}</td><td style="border:1px solid #ddd;padding:8px;">${r.employeeContact}</td><td style="border:1px solid #ddd;padding:8px;">${r.status}</td><td style="border:1px solid #ddd;padding:8px;">${r.start}</td><td style="border:1px solid #ddd;padding:8px;">${r.end}</td><td style="border:1px solid #ddd;padding:8px;">${r.duration}</td><td style="border:1px solid #ddd;padding:8px;font-weight:bold;color:#0f3460;">${r.km.toFixed(2)}</td><td style="border:1px solid #ddd;padding:8px;">${r.stops}</td><td style="border:1px solid #ddd;padding:8px;">${r.updates}</td></tr>`;
-            });
-            
-            const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset="utf-8"><title>M Creations Service Report</title><style>body{font-family:Arial,sans-serif;padding:40px;}.header{text-align:center;border-bottom:3px solid #0f3460;padding-bottom:20px;margin-bottom:30px;}.header h1{color:#0f3460;font-size:28px;margin:0;}.header h1 span{color:#e94560;}.header .sub{color:#6b7280;font-size:14px;}.header .brand{color:#0f3460;font-size:12px;font-weight:bold;}.summary{background:#f0f4ff;padding:20px;border-radius:10px;margin-bottom:30px;}.summary table{width:100%;}.summary td{padding:8px 15px;font-size:14px;}.summary .label{font-weight:bold;color:#0f3460;}.summary .value{font-weight:bold;font-size:18px;color:#1f2937;}table{width:100%;border-collapse:collapse;font-size:11px;}th{background:#0f3460;color:white;padding:8px;border:1px solid #0f3460;text-align:left;}td{padding:8px;border:1px solid #ddd;}tr:nth-child(even){background:#f9fafb;}.footer{text-align:center;color:#6b7280;font-size:12px;margin-top:40px;border-top:1px solid #e5e7eb;padding-top:20px;}.total-row{background:#e5e7eb !important;font-weight:bold;}</style></head><body><div class="header"><h1>🏢 M <span>Creations</span></h1><div class="sub">Field Service Report</div><div class="brand">Generated: ${new Date().toLocaleString()} | Period: ${periodLabel}</div></div><div class="summary"><table><tr><td class="label">📊 Total Services</td><td class="value">${rideData.length}</td><td class="label">✅ Completed</td><td class="value">${completed}</td></tr><tr><td class="label">📏 Total KM</td><td class="value">${totalKM.toFixed(2)} KM</td><td class="label">⏱ Avg Duration</td><td class="value">${rideData.filter(r=>r.duration!=='N/A').length > 0 ? Math.round(rideData.filter(r=>r.duration!=='N/A').reduce((s,r)=>s+parseFloat(r.duration),0) / rideData.filter(r=>r.duration!=='N/A').length) : '--'} min</td></tr><tr><td class="label">👥 Unique Customers</td><td class="value">${new Set(rideData.map(r=>r.customer)).size}</td><td class="label">👷 Active Engineers</td><td class="value">${new Set(rideData.map(r=>r.employee)).size}</td></tr></table></div><h3>📋 Service Details</h3><table><thead><tr><th>#</th><th>REF ID</th><th>Customer</th><th>Customer Mobile</th><th>Engineer</th><th>Engineer Contact</th><th>Status</th><th>Start</th><th>End</th><th>Min</th><th>KM</th><th>Stops</th><th>Updates</th></tr></thead><tbody>${tableRows}<tr class="total-row"><td colspan="9" style="text-align:right;">TOTAL:</td><td>${rideData.filter(r=>r.duration!=='N/A').length > 0 ? Math.round(rideData.filter(r=>r.duration!=='N/A').reduce((s,r)=>s+parseFloat(r.duration),0)) : '--'}</td><td>${totalKM.toFixed(2)}</td><td>${rideData.reduce((s,r)=>s+r.stops,0)}</td><td>${rideData.reduce((s,r)=>s+r.updates,0)}</td></tr></tbody></table><div class="footer"><p>🏢 M <span style="color:#e94560;">Creations</span> — Field Service Excellence</p><p>© ${new Date().getFullYear()} M Creations. All rights reserved.</p></div></body></html>`;
-            
-            const blob = new Blob([html], { type: 'application/msword;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `mcreations-report-${period}-${date}.doc`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            closeModal('reportModal');
-            alert(`✅ M Creations Word Report Exported!\n📄 File: mcreations-report-${period}-${date}.doc`);
-        }
-        
-        function exportExcel(rideData, totalKM, completed, periodLabel, period) {
-            const date = new Date().toISOString().split('T')[0];
-            let csv = "REF ID,Customer,Customer Mobile,Engineer,Engineer Contact,Status,Start,End,Duration (min),KM,Stops,Updates,Created\n";
-            rideData.forEach(r => { csv += `"${r.id}","${r.customer}","${r.mobile}","${r.employee}","${r.employeeContact}","${r.status}","${r.start}","${r.end}","${r.duration}","${r.km.toFixed(2)}","${r.stops}","${r.updates}","${r.created}"\n`; });
-            csv += `\n"M Creations Service Summary","Total: ${rideData.length}","Completed: ${completed}","Total KM: ${totalKM.toFixed(2)}","Period: ${periodLabel}","Generated: ${new Date().toLocaleString()}"\n`;
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `mcreations-report-${period}-${date}.csv`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            closeModal('reportModal');
-            alert(`✅ M Creations Report Exported!`);
-        }
-        
-        window.onload = init;
+        window.onload = function() {
+            setTimeout(init, 100);
+        };
     </script>
 </body>
 </html>
