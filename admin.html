@@ -86,18 +86,6 @@
         .filter-btn:hover{background:#f3f4f6;}
         .filter-btn.active{background:#0f3460;color:white;border-color:#0f3460;}
         
-        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;animation:fadeIn 0.3s;}
-        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-        .modal-content{background:white;padding:30px;border-radius:16px;width:500px;max-width:90%;max-height:90vh;overflow-y:auto;animation:slideUp 0.3s;}
-        @keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
-        .modal-content h3{margin-bottom:15px;color:#0f3460;}
-        .modal-content input,.modal-content select,.modal-content textarea{width:100%;padding:12px;margin:10px 0;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;transition:0.2s;}
-        .modal-content input:focus,.modal-content select:focus,.modal-content textarea:focus{outline:2px solid #0f3460;}
-        
-        .add-employee-form{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;}
-        .add-employee-form input{flex:1;padding:10px;border:2px solid #e5e7eb;border-radius:10px;font-size:14px;min-width:150px;transition:0.2s;}
-        .add-employee-form input:focus{outline:2px solid #0f3460;}
-        
         .debug{background:#1f2937;color:#10b981;padding:12px;border-radius:8px;font-family:monospace;font-size:11px;max-height:150px;overflow-y:auto;}
         .debug::-webkit-scrollbar{width:4px;}
         .debug::-webkit-scrollbar-thumb{background:#10b981;border-radius:4px;}
@@ -121,23 +109,6 @@
     </style>
 </head>
 <body>
-    <script>
-        if (typeof Storage.isAdminLoggedIn === 'function') {
-            if (!Storage.isAdminLoggedIn()) { 
-                window.location.href = 'admin-login.html'; 
-            }
-        }
-        
-        function handleAdminLogout() {
-            if (confirm('Are you sure you want to logout?')) {
-                if (typeof Storage.adminLogout === 'function') {
-                    Storage.adminLogout();
-                }
-                window.location.href = 'admin-login.html';
-            }
-        }
-    </script>
-    
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -196,7 +167,6 @@
                 <button onclick="clearTodayAttendance()" style="padding:4px 14px;background:#f59e0b;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">🗑️ Clear Today</button>
                 <button onclick="clearAllAttendance()" style="padding:4px 14px;background:#dc2626;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">🗑️ Clear All</button>
                 <button onclick="clearAllData()" style="padding:4px 14px;background:#0f3460;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">⚠️ Reset System</button>
-                <span style="font-size:11px;color:#6b7280;">(⚠️ This will delete ALL data)</span>
             </div>
         </div>
         
@@ -246,88 +216,78 @@
         <div class="company-footer"><strong>🏢 M <span>Creations</span></strong> — Field Service Excellence © 2026</div>
     </div>
     
+    <script src="/socket.io/socket.io.js"></script>
     <script src="js/app.js"></script>
     <script>
+        if (!Storage.isAdminLoggedIn()) { 
+            window.location.href = 'admin-login.html'; 
+        }
+        
+        function handleAdminLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                Storage.adminLogout();
+                window.location.href = 'admin-login.html';
+            }
+        }
+
         let currentFilter = 'all';
         let employees = [], rides = [], liveLocations = {};
         
         function log(msg) {
             const d = document.getElementById('debugLog');
-            d.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}\n${d.innerHTML}`;
-            if (d.innerHTML.length > 3000) d.innerHTML = d.innerHTML.substring(0, 3000);
+            if (d) {
+                d.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}\n${d.innerHTML}`;
+                if (d.innerHTML.length > 3000) d.innerHTML = d.innerHTML.substring(0, 3000);
+            }
             console.log('[M Creations]', msg);
         }
         
-        function init() {
-            log('🚀 M Creations System Starting...');
-            
-            if (typeof Storage === 'undefined') {
-                log('❌ Storage not loaded!');
-                return;
-            }
-            
-            loadData();
+        async function init() {
+            log('🚀 M Creations Dashboard Starting...');
+            await loadData();
             renderMap();
             updateStats();
             renderRides();
             renderEmployees();
-            loadRequests();
-            setTimeout(loadTodayAttendance, 500);
+            await loadRequests();
+            setTimeout(loadTodayAttendance, 300);
             
-            setInterval(() => {
-                if (typeof Storage.getLiveLocations === 'function') {
-                    const newLoc = Storage.getLiveLocations();
-                    if (JSON.stringify(newLoc) !== JSON.stringify(liveLocations)) {
-                        liveLocations = newLoc;
-                        renderMap();
-                        updateStats();
-                        renderRides();
-                        document.getElementById('lastUpdate').textContent = 'Just now';
-                    }
-                }
-            }, 2000);
-            
-            setInterval(() => {
+            // Listen for 2-second real-time Socket.IO location updates
+            window.addEventListener('locationUpdate', function() { 
+                liveLocations = Storage.getLiveLocations(); 
+                renderMap(); 
+                updateStats(); 
+                document.getElementById('lastUpdate').textContent = 'Just now';
+            });
+
+            // Listen for real-time remote login request alerts
+            window.addEventListener('loginRequestAlert', function() {
                 loadRequests();
                 updateStats();
-                renderEmployees();
-            }, 5000);
-            
-            window.addEventListener('locationUpdate', function() { 
-                if (typeof Storage.getLiveLocations === 'function') {
-                    liveLocations = Storage.getLiveLocations(); 
-                    renderMap(); 
-                    updateStats(); 
-                }
             });
         }
         
-        function loadData() {
+        async function loadData() {
             try {
                 employees = Storage.getEmployees();
                 rides = Storage.getRides();
                 liveLocations = Storage.getLiveLocations();
-                log(`📊 ${rides.length} rides, ${employees.length} employees`);
+                log(`📊 Loaded ${rides.length} rides, ${employees.length} employees`);
             } catch(e) {
                 console.error('Error loading data:', e);
             }
         }
         
-        // ============================================
-        // LOGIN REQUESTS
-        // ============================================
-        
-        function loadRequests() {
+        async function loadRequests() {
             try {
-                const requests = Storage.getPendingLoginRequests();
+                const requests = await Storage.getPendingLoginRequests();
                 const container = document.getElementById('requestsContainer');
                 const badge = document.getElementById('requestBadge');
                 
                 if (badge) badge.textContent = `Pending: ${requests.length}`;
-                
                 if (!container) return;
                 
-                if (requests.length === 0) {
+                if (!requests || requests.length === 0) {
                     container.innerHTML = '<p style="color:#6b7280;text-align:center;padding:20px;">No pending requests</p>';
                     return;
                 }
@@ -342,7 +302,7 @@
                                 <span style="font-size:12px;color:#6b7280;display:block;">
                                     📍 ${req.lat.toFixed(6)}, ${req.lng.toFixed(6)}
                                     <br>📏 ${distMeters}m from office
-                                    <br>🕒 ${new Date(req.timestamp).toLocaleTimeString()}
+                                    <br>🕒 ${new Date(req.timestamp || Date.now()).toLocaleTimeString()}
                                 </span>
                             </div>
                             <div class="btn-group">
@@ -357,42 +317,34 @@
             }
         }
         
-        function approveRequest(requestId) {
+        async function approveRequest(requestId) {
             if (confirm('Approve this login request?')) {
-                if (Storage.approveLoginRequest(requestId)) {
+                const ok = await Storage.approveLoginRequest(requestId);
+                if (ok) {
                     log(`✅ Request ${requestId} approved`);
-                    loadRequests();
+                    await loadRequests();
                     updateStats();
                     alert('✅ Request approved! Employee can now login.');
                 }
             }
         }
         
-        function rejectRequest(requestId) {
+        async function rejectRequest(requestId) {
             if (confirm('Reject this login request?')) {
-                if (Storage.rejectLoginRequest(requestId)) {
+                const ok = await Storage.rejectLoginRequest(requestId);
+                if (ok) {
                     log(`❌ Request ${requestId} rejected`);
-                    loadRequests();
+                    await loadRequests();
                     updateStats();
                     alert('❌ Request rejected.');
                 }
             }
         }
         
-        // ============================================
-        // EMPLOYEE MANAGEMENT
-        // ============================================
-        
         function renderEmployees() {
             const tbody = document.getElementById('employeeTableBody');
             if (!tbody) return;
-            
-            try {
-                employees = Storage.getEmployees();
-            } catch(e) {
-                console.error('Error getting employees:', e);
-                return;
-            }
+            employees = Storage.getEmployees();
             
             if (!employees || employees.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#6b7280;padding:20px;">No employees added yet</td></tr>`;
@@ -419,66 +371,34 @@
             }).join('');
             
             document.getElementById('totalEmployees').textContent = employees.length;
-            log(`✅ Rendered ${employees.length} employees`);
         }
         
-        function addEmployee() {
+        async function addEmployee() {
             const nameInput = document.getElementById('newEmployeeName');
             const contactInput = document.getElementById('newEmployeeContact');
             const name = nameInput.value.trim();
             const contact = contactInput.value.trim();
             
-            if (!name) { 
-                alert('Please enter employee name'); 
-                nameInput.focus(); 
-                return; 
-            }
+            if (!name) { alert('Please enter employee name'); nameInput.focus(); return; }
+            if (!contact) { alert('Please enter contact number'); contactInput.focus(); return; }
+            if (!/^[0-9]{10}$/.test(contact)) { alert('Enter valid 10-digit number'); contactInput.focus(); return; }
             
-            if (!contact) { 
-                alert('Please enter contact number'); 
-                contactInput.focus(); 
-                return; 
-            }
-            
-            if (!/^[0-9]{10}$/.test(contact)) { 
-                alert('Enter valid 10-digit number'); 
-                contactInput.focus(); 
-                return; 
-            }
-            
-            const existing = Storage.getEmployees();
-            if (existing.some(e => e.name.toLowerCase() === name.toLowerCase())) {
-                alert('❌ Employee with this name already exists');
+            const newEmp = await Storage.addEmployee(name, contact);
+            if (newEmp) {
+                log(`✅ Employee added: ${newEmp.name} (${newEmp.id})`);
+                renderEmployees();
+                updateStats();
                 nameInput.value = '';
-                nameInput.focus();
-                return;
+                contactInput.value = '';
+                alert(`✅ Employee "${name}" added!\n🔑 Password: ${name.toLowerCase()}123`);
             }
-            
-            const newEmp = Storage.addEmployee(name, contact);
-            if (!newEmp) {
-                alert('❌ Failed to add employee');
-                return;
-            }
-            
-            log(`✅ Employee added: ${newEmp.name} (${newEmp.id})`);
-            
-            employees = Storage.getEmployees();
-            renderEmployees();
-            renderRides();
-            updateStats();
-            
-            nameInput.value = '';
-            contactInput.value = '';
-            
-            alert(`✅ Employee "${name}" added!\n🔑 Default Password: ${name.toLowerCase()}123`);
         }
         
-        function deleteEmployee(id) {
+        async function deleteEmployee(id) {
             if (!confirm('Delete this employee?')) return;
-            if (Storage.deleteEmployee(id)) {
-                employees = Storage.getEmployees();
+            const ok = await Storage.deleteEmployee(id);
+            if (ok) {
                 renderEmployees();
-                renderRides();
                 updateStats();
                 log(`🗑️ Employee deleted: ${id}`);
             }
@@ -488,38 +408,22 @@
             document.getElementById('employeeSection').scrollIntoView({ behavior: 'smooth' }); 
         }
         
-        // ============================================
-        // ✅ ATTENDANCE FUNCTIONS WITH CLEAR OPTIONS
-        // ============================================
-        
-        function loadTodayAttendance() {
-            try {
-                const attendance = Storage.getTodayAttendance();
-                renderAttendance(attendance, "Today's Attendance");
-            } catch(e) {
-                console.error('Error loading today attendance:', e);
-            }
+        async function loadTodayAttendance() {
+            const attendance = await Storage.getTodayAttendance();
+            renderAttendance(attendance, "Today's Attendance");
         }
         
-        function loadWeeklyAttendance() {
-            try {
-                const today = new Date();
-                const weekAgo = new Date(); 
-                weekAgo.setDate(today.getDate() - 7);
-                const attendance = Storage.getAttendanceReport(weekAgo.toISOString().split('T')[0], today.toISOString().split('T')[0]);
-                renderAttendance(attendance, 'Weekly Attendance');
-            } catch(e) {
-                console.error('Error loading weekly attendance:', e);
-            }
+        async function loadWeeklyAttendance() {
+            const today = new Date();
+            const weekAgo = new Date(); 
+            weekAgo.setDate(today.getDate() - 7);
+            const attendance = await Storage.getAttendanceReport(weekAgo.toISOString().split('T')[0], today.toISOString().split('T')[0]);
+            renderAttendance(attendance, 'Weekly Attendance');
         }
         
-        function loadAllAttendance() {
-            try {
-                const attendance = Storage.getAttendance();
-                renderAttendance(attendance, 'All Attendance Records');
-            } catch(e) {
-                console.error('Error loading all attendance:', e);
-            }
+        async function loadAllAttendance() {
+            const attendance = await Storage.getAttendance();
+            renderAttendance(attendance, 'All Attendance Records');
         }
         
         function renderAttendance(attendance, title) {
@@ -533,9 +437,7 @@
             
             const grouped = {};
             attendance.forEach(a => { 
-                if (!grouped[a.date]) { 
-                    grouped[a.date] = []; 
-                } 
+                if (!grouped[a.date]) grouped[a.date] = []; 
                 grouped[a.date].push(a); 
             });
             
@@ -545,13 +447,12 @@
             const sortedDates = Object.keys(grouped).sort().reverse();
             sortedDates.forEach(date => {
                 const records = grouped[date];
-                const dateObj = new Date(date);
-                html += `<tr style="background:#f8fafc;font-weight:bold;"><td colspan="7" style="padding:8px 12px;">📅 ${dateObj.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })} (${records.length} employees)</td></tr>`;
+                html += `<tr style="background:#f8fafc;font-weight:bold;"><td colspan="7" style="padding:8px 12px;">📅 ${date} (${records.length} employees)</td></tr>`;
                 records.forEach(a => {
                     const loginTime = a.loginTime ? new Date(a.loginTime).toLocaleTimeString() : 'N/A';
                     const location = a.checkinLat ? `${a.checkinLat.toFixed(6)}, ${a.checkinLng.toFixed(6)}` : 'N/A';
                     const statusBadge = a.status === 'present' ? '<span style="color:#10b981;font-weight:bold;">✅ Present</span>' : '<span style="color:#ef4444;font-weight:bold;">❌ Absent</span>';
-                    const type = a.checkinType === 'auto' ? '🏢 Office' : a.checkinType === 'remote_approved' ? '📱 Remote (Approved)' : '📱 Remote';
+                    const type = a.checkinType === 'auto' ? '🏢 Office' : '📱 Remote Approved';
                     html += `<tr><td style="font-size:12px;color:#6b7280;">${date}</td><td><strong>${a.employeeName}</strong><br><span style="font-size:10px;color:#6b7280;">${type}</span></td><td>${loginTime}</td><td style="font-size:11px;">${location}</td><td>${statusBadge}</td><td>${a.ridesCompleted || 0}</td><td>${(a.totalKM || 0).toFixed(2)}</td></tr>`;
                 });
             });
@@ -564,76 +465,25 @@
             container.innerHTML = html;
         }
         
-        // ✅ CLEAR TODAY'S ATTENDANCE
-        function clearTodayAttendance() {
+        async function clearTodayAttendance() {
             if (confirm('⚠️ Delete today\'s attendance records?')) {
-                const today = new Date().toISOString().split('T')[0];
-                let attendance = Storage.getAttendance();
-                attendance = attendance.filter(a => a.date !== today);
-                Storage.saveAttendance(attendance);
-                alert(`✅ Deleted attendance for ${today}`);
+                await fetch(`${API_BASE}/api/attendance/today`, { method: 'DELETE' });
+                alert('✅ Today\'s attendance cleared');
                 loadTodayAttendance();
-                updateStats();
-                log(`🗑️ Today's attendance cleared`);
             }
         }
         
-        // ✅ CLEAR ALL ATTENDANCE
-        function clearAllAttendance() {
-            if (confirm('⚠️ Are you sure you want to delete ALL attendance records?')) {
-                if (confirm('⚠️ This cannot be undone! Delete ALL?')) {
-                    Storage.saveAttendance([]);
-                    alert('✅ All attendance records deleted!');
-                    loadAllAttendance();
-                    updateStats();
-                    log('🗑️ All attendance cleared');
-                }
+        async function clearAllAttendance() {
+            if (confirm('⚠️ Delete ALL attendance records?')) {
+                await fetch(`${API_BASE}/api/attendance/all`, { method: 'DELETE' });
+                alert('✅ All attendance records cleared!');
+                loadAllAttendance();
             }
         }
-        
-        // ✅ CLEAR ALL DATA (Complete Reset)
-        function clearAllData() {
-            if (confirm('⚠️ This will delete ALL data (Employees, Rides, Attendance, Requests). Continue?')) {
-                if (confirm('⚠️ FINAL WARNING: This cannot be undone!')) {
-                    localStorage.removeItem('employees');
-                    localStorage.removeItem('rides');
-                    localStorage.removeItem('attendance');
-                    localStorage.removeItem('loginRequests');
-                    localStorage.removeItem('liveLocations');
-                    localStorage.removeItem('rideCounter');
-                    alert('✅ All data cleared! Refreshing...');
-                    location.reload();
-                }
-            }
-        }
-        
-        // ============================================
-        // EXCEL EXPORT
-        // ============================================
         
         function exportExcelReport() {
-            try {
-                const html = Storage.generateExcelReport();
-                const blob = new Blob([html], { 
-                    type: 'application/vnd.ms-excel;charset=utf-8' 
-                });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `daily-report-${new Date().toISOString().split('T')[0]}.xls`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(link.href);
-                alert('✅ Excel report downloaded!');
-            } catch(e) {
-                console.error('Error exporting Excel:', e);
-                alert('❌ Failed to export Excel report');
-            }
+            Storage.generateExcelReport();
         }
-        
-        // ============================================
-        // MAP & RIDE FUNCTIONS
-        // ============================================
         
         function renderMap() {
             const container = document.getElementById('mapCanvas');
@@ -657,91 +507,62 @@
             container.innerHTML += `<div style="position:absolute;top:${officeY-1}%;left:${officeX-1}%;width:2%;height:2%;background:#0f3460;border-radius:50%;pointer-events:none;"></div>`;
             
             const activeEmployees = [];
-            
             for (const key in allLocations) {
-                if (key.startsWith('EMP_')) {
-                    const loc = allLocations[key];
+                const loc = allLocations[key];
+                if (loc && loc.lat && loc.lng) {
                     const emp = employees.find(e => e.id === loc.employeeId);
-                    if (emp) {
-                        activeEmployees.push({
-                            lat: loc.lat,
-                            lng: loc.lng,
-                            employeeName: emp.name,
-                            employeeId: emp.id,
-                            customerId: '📍 Live'
-                        });
-                    }
-                }
-            }
-            
-            activeRides.forEach(ride => {
-                const loc = allLocations[ride.customerId] || allLocations[ride.id];
-                if (loc) {
-                    const emp = employees.find(e => e.id === ride.employeeId);
                     if (emp && !activeEmployees.find(e => e.employeeId === emp.id)) {
                         activeEmployees.push({
                             lat: loc.lat,
                             lng: loc.lng,
                             employeeName: emp.name,
                             employeeId: emp.id,
-                            customerId: ride.customerId || 'Ride'
+                            customerId: key.startsWith('EMP_') ? '📍 Live' : key
                         });
                     }
                 }
-            });
+            }
             
             if (activeEmployees.length === 0) {
-                container.innerHTML += `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#6b7280;"><div style="font-size:48px;">📍</div><p style="font-weight:600;color:#0f3460;">No Active Locations</p><p style="font-size:13px;">Engineers must start a ride to share GPS</p></div>`;
+                container.innerHTML += `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:#6b7280;"><div style="font-size:48px;">📍</div><p style="font-weight:600;color:#0f3460;">No Active Locations</p><p style="font-size:13px;">Engineers share GPS live every 2s</p></div>`;
                 return;
             }
             
             activeEmployees.forEach((emp, index) => {
-                const hasLoc = emp.lat && emp.lng;
-                let x = 50, y = 50;
-                if (hasLoc) { 
-                    const relativeLat = (emp.lat - 17.2) / 0.3;
-                    const relativeLng = (emp.lng - 76.7) / 0.3;
-                    x = 20 + relativeLng * 60;
-                    y = 20 + (1 - relativeLat) * 60;
-                    x = Math.max(5, Math.min(95, x));
-                    y = Math.max(5, Math.min(95, y));
-                }
+                const relativeLat = (emp.lat - 17.2) / 0.3;
+                const relativeLng = (emp.lng - 76.7) / 0.3;
+                let x = 20 + relativeLng * 60;
+                let y = 20 + (1 - relativeLat) * 60;
+                x = Math.max(5, Math.min(95, x));
+                y = Math.max(5, Math.min(95, y));
+                
                 const marker = document.createElement('div');
-                marker.className = `map-marker ${hasLoc ? 'active' : ''}`;
+                marker.className = 'map-marker active';
                 marker.style.left = x + '%';
                 marker.style.top = y + '%';
-                marker.id = `marker-${emp.employeeId || index}`;
-                marker.innerHTML = `${hasLoc ? '<div class="pulse-ring"></div>' : ''}<div class="dot"></div><div class="label">${emp.employeeName || 'Unknown'} ${hasLoc ? '🟢' : '⚪'}<br><span style="font-size:8px;">${emp.customerId || 'Live'}</span></div>`;
+                marker.innerHTML = `<div class="pulse-ring"></div><div class="dot"></div><div class="label">${emp.employeeName} 🟢<br><span style="font-size:8px;">${emp.customerId}</span></div>`;
                 container.appendChild(marker);
             });
         }
         
-        function centerMap() { 
-            renderMap(); 
-        }
+        function centerMap() { renderMap(); }
         
         function updateStats() {
             try {
                 const active = rides.filter(r => r.status === 'in_progress');
-                const live = active.filter(r => liveLocations[r.id] || liveLocations[r.customerId]);
-                const online = employees.filter(e => rides.some(r => r.employeeId === e.id && r.status === 'in_progress' && (liveLocations[r.id] || liveLocations[r.customerId])));
                 const pending = Storage.getPendingLoginRequests().length;
                 
                 document.getElementById('activeCount').textContent = active.length;
-                document.getElementById('liveCount').textContent = live.length;
-                document.getElementById('onlineCount').textContent = online.length;
+                document.getElementById('liveCount').textContent = Object.keys(liveLocations).length;
+                document.getElementById('onlineCount').textContent = employees.length;
                 document.getElementById('totalEmployees').textContent = employees.length;
-                document.getElementById('totalCount').textContent = rides.length;
                 document.getElementById('pendingRequests').textContent = pending;
-            } catch(e) {
-                console.error('Error updating stats:', e);
-            }
+            } catch(e) {}
         }
         
         function renderRides() {
             const container = document.getElementById('ridesList');
             if (!container) return;
-            
             let filtered = rides;
             if (currentFilter !== 'all') filtered = rides.filter(r => r.status === currentFilter);
             
@@ -752,17 +573,16 @@
             
             container.innerHTML = filtered.map(ride => {
                 const emp = employees.find(e => e.id === ride.employeeId);
-                const isLive = ride.status === 'in_progress' && (liveLocations[ride.id] || liveLocations[ride.customerId]);
                 const cls = ride.status === 'in_progress' ? 'status-progress' : 'status-completed';
                 const txt = ride.status === 'in_progress' ? '🟢 Live' : '✅ Completed';
-                return `<div class="ride-item"><div><span class="status-badge ${cls}">${txt}</span>${isLive ? ' ●' : ''}<div style="font-size:13px;color:#6b7280;">📱 ${ride.customerId || 'N/A'} → ${emp?.name || 'Unassigned'} ${ride.totalDistance ? `| 📏 ${ride.totalDistance}KM` : ''}</div></div><div style="font-size:12px;color:#6b7280;">${isLive ? '📍 Live' : new Date(ride.startTime || ride.createdAt).toLocaleTimeString()}</div></div>`;
+                return `<div class="ride-item"><div><span class="status-badge ${cls}">${txt}</span><div style="font-size:13px;color:#6b7280;">📱 ${ride.customerId || 'N/A'} → ${emp?.name || 'Engineer'} ${ride.totalDistance ? `| 📏 ${ride.totalDistance}KM` : ''}</div></div><div style="font-size:12px;color:#6b7280;">${new Date(ride.startTime || Date.now()).toLocaleTimeString()}</div></div>`;
             }).join('');
         }
         
         function filterRides(filter) {
             currentFilter = filter;
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
             renderRides();
         }
         

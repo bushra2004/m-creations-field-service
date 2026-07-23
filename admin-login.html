@@ -31,9 +31,6 @@
         .footer-links{text-align:center;margin-top:20px;font-size:13px;color:#6b7280;}
         .footer-links a{color:#0f3460;text-decoration:none;font-weight:600;transition:0.2s;}
         .footer-links a:hover{color:#e94560;text-decoration:underline;}
-        .demo-note{background:#f1f5f9;padding:15px;border-radius:12px;margin-top:20px;font-size:13px;color:#6b7280;text-align:center;border:1px dashed #d1d5db;}
-        .demo-note strong{color:#0f3460;}
-        .demo-note .demo-cred{display:inline-block;background:#0f3460;color:white;padding:2px 10px;border-radius:4px;font-family:monospace;font-size:12px;margin:2px;}
         .company-footer{text-align:center;padding:20px 0 0 0;color:#6b7280;font-size:11px;border-top:1px solid #e5e7eb;margin-top:25px;}
         .company-footer strong{color:#0f3460;}
         .company-footer span{color:#e94560;}
@@ -73,6 +70,7 @@
         </div>
     </div>
     
+    <script src="/socket.io/socket.io.js"></script>
     <script src="js/app.js"></script>
     <script>
         if (Storage.isAdminLoggedIn()) { window.location.href = 'admin.html'; }
@@ -88,7 +86,7 @@
         
         function hideMessage() { messageBox.style.display = 'none'; }
         
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
             hideMessage();
             
@@ -103,21 +101,16 @@
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<span class="spinner"></span> Logging in...';
             
-            setTimeout(() => {
-                const result = Storage.adminLogin(username, password);
-                if (result.success) {
-                    showMessage('✅ Welcome Admin! Redirecting...', 'success');
-                    setTimeout(() => { window.location.href = 'admin.html'; }, 1000);
-                } else {
-                    showMessage('❌ ' + result.message, 'error');
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '🚀 Login to Dashboard';
-                }
-            }, 500);
+            const result = await Storage.adminLogin(username, password);
+            if (result.success) {
+                showMessage('✅ Welcome Admin! Redirecting...', 'success');
+                setTimeout(() => { window.location.href = 'admin.html'; }, 800);
+            } else {
+                showMessage('❌ ' + result.message, 'error');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '🚀 Login to Dashboard';
+            }
         }
-        
-        document.getElementById('username').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('password').focus(); });
-        document.getElementById('password').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('loginForm').dispatchEvent(new Event('submit')); });
     </script>
 </body>
 </html>

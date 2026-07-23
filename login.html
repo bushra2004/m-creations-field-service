@@ -33,9 +33,6 @@
         .footer-links{text-align:center;margin-top:20px;font-size:13px;color:#6b7280;}
         .footer-links a{color:#0f3460;text-decoration:none;font-weight:600;transition:0.2s;}
         .footer-links a:hover{color:#e94560;text-decoration:underline;}
-        .demo-note{background:#f1f5f9;padding:15px;border-radius:12px;margin-top:20px;font-size:13px;color:#6b7280;text-align:center;border:1px dashed #d1d5db;}
-        .demo-note strong{color:#0f3460;}
-        .demo-note .demo-cred{display:inline-block;background:#0f3460;color:white;padding:2px 10px;border-radius:4px;font-family:monospace;font-size:12px;margin:2px;}
         .location-status{background:#f1f5f9;padding:10px 14px;border-radius:10px;margin-top:15px;display:none;font-size:12px;color:#6b7280;text-align:center;border:1px solid #e5e7eb;}
         .company-footer{text-align:center;padding:20px 0 0 0;color:#6b7280;font-size:11px;border-top:1px solid #e5e7eb;margin-top:25px;}
         .company-footer strong{color:#0f3460;}
@@ -67,12 +64,6 @@
         
         <div id="locationStatus" class="location-status">📍 Detecting your location...</div>
         
-        <div class="demo-note">
-            💡 <strong>Demo Credentials:</strong><br>
-            <span class="demo-cred">Emp</span> · Password: <span class="demo-cred">emp123</span>
-            <span style="display:inline-block;margin:0 5px;color:#d1d5db;">|</span>
-        </div>
-        
         <div class="footer-links">
             <a href="index.html">🏠 Back to Home</a>
             <span class="separator">|</span>
@@ -84,6 +75,7 @@
         </div>
     </div>
     
+    <script src="/socket.io/socket.io.js"></script>
     <script src="js/app.js"></script>
     <script>
         if (Storage.getLoggedInEmployee()) { window.location.href = 'employee.html'; }
@@ -98,7 +90,6 @@
             messageBox.textContent = message;
             messageBox.className = `message-box ${type}`;
             messageBox.style.display = 'block';
-            if (type === 'success') { setTimeout(() => { messageBox.style.display = 'none'; }, 8000); }
         }
         
         function hideMessage() { messageBox.style.display = 'none'; }
@@ -108,7 +99,9 @@
             locationStatus.textContent = '📍 Detecting your location...';
             
             if (!navigator.geolocation) {
-                locationStatus.textContent = '❌ GPS not supported. Please use Chrome/Edge.';
+                currentLat = Storage.OFFICE_LAT;
+                currentLng = Storage.OFFICE_LNG;
+                locationStatus.textContent = '📍 GPS not available. Defaulted to Office Coordinates.';
                 return;
             }
             
@@ -123,19 +116,20 @@
                     locationStatus.innerHTML = `
                         📍 Location: ${currentLat.toFixed(6)}, ${currentLng.toFixed(6)}<br>
                         📏 Distance from office: <strong>${distMeters} meters</strong><br>
-                        ${withinOffice ? '✅ You are within the office radius. You can login directly.' : '⚠️ You are outside the office radius. You will need admin approval.'}
+                        ${withinOffice ? '✅ You are within office radius (100m). Auto-login ready.' : '⚠️ Outside office radius. Request will be sent to Admin.'}
                     `;
                     locationStatus.style.borderColor = withinOffice ? '#10b981' : '#f59e0b';
                 },
                 (err) => {
-                    locationStatus.textContent = '❌ Unable to get location. Please enable GPS and refresh.';
-                    console.error('GPS Error:', err);
+                    currentLat = Storage.OFFICE_LAT;
+                    currentLng = Storage.OFFICE_LNG;
+                    locationStatus.innerHTML = '📍 GPS Permission Pending. Location set to Office Default.';
                 },
                 { enableHighAccuracy: true, timeout: 10000 }
             );
         }
         
-        function handleLogin(e) {
+        async function handleLogin(e) {
             e.preventDefault();
             hideMessage();
             
@@ -144,92 +138,62 @@
             
             if (!username || !password) {
                 showMessage('❌ Please enter both username and password', 'error');
-                document.getElementById('username').focus();
                 return;
             }
             
             if (currentLat === null || currentLng === null) {
-                showMessage('📍 Please wait while we detect your location...', 'info');
-                return;
+                currentLat = Storage.OFFICE_LAT;
+                currentLng = Storage.OFFICE_LNG;
             }
             
             loginBtn.disabled = true;
-            loginBtn.innerHTML = '<span class="spinner"></span> Verifying location...';
+            loginBtn.innerHTML = '<span class="spinner"></span> Verifying credentials & location...';
             
-            setTimeout(() => {
-                const employee = Storage.getEmployeeByUsername(username);
-                if (!employee) {
-                    showMessage('❌ Employee not found', 'error');
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '📍 Login & Verify Location';
-                    return;
-                }
+            const res = await Storage.loginEmployee(username, password, currentLat, currentLng);
+            
+            if (res.success && res.withinOffice) {
+                showMessage(`✅ Logged in from office. Attendance marked.`, 'success');
+                setTimeout(() => { window.location.href = 'employee.html'; }, 1000);
+            } else if (!res.withinOffice && res.requestId) {
+                const distM = (res.distance * 1000).toFixed(0);
+                showMessage(
+                    `⚠️ You are ${distM}m from office.\n\n📨 Remote Login request sent to Admin.\n📋 Request ID: ${res.requestId}\n\n⏳ Waiting for Admin approval...`, 
+                    'warning'
+                );
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '📍 Login & Verify Location';
                 
-                if (employee.password !== password) {
-                    showMessage('❌ Incorrect password', 'error');
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '📍 Login & Verify Location';
-                    document.getElementById('password').value = '';
-                    document.getElementById('password').focus();
-                    return;
-                }
-                
-                const withinOffice = Storage.isWithinOfficeRadius(currentLat, currentLng);
-                const distance = Storage.calculateDistance(currentLat, currentLng, Storage.OFFICE_LAT, Storage.OFFICE_LNG);
-                const distMeters = (distance * 1000).toFixed(0);
-                
-                if (withinOffice) {
-                    // Local employee - auto login
-                    sessionStorage.setItem('loggedInEmployee', JSON.stringify(employee));
-                    Storage.markAttendance(employee.id, currentLat, currentLng, 'auto');
-                    showMessage(`✅ Logged in from office. Attendance marked.`, 'success');
-                    setTimeout(() => { window.location.href = 'employee.html'; }, 1500);
-                } else {
-                    // Remote employee - request approval
-                    const requestId = Storage.createLoginRequest(employee.id, currentLat, currentLng);
-                    showMessage(
-                        `⚠️ You are ${distMeters} meters from office.\n\n📨 Login request sent to Admin.\n📋 Request ID: ${requestId}\n\n⏳ Please wait for admin approval.`, 
-                        'warning'
-                    );
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '📍 Login & Verify Location';
+                let pollCount = 0;
+                const checkApproval = setInterval(async () => {
+                    pollCount++;
+                    try {
+                        const statusRes = await fetch(`${API_BASE}/api/login/request/${res.requestId}`);
+                        const statusData = await statusRes.json();
+                        if (statusData.success && statusData.status === 'approved') {
+                            clearInterval(checkApproval);
+                            sessionStorage.setItem('loggedInEmployee', JSON.stringify(res.employee || statusData.employee));
+                            if (statusData.token) sessionStorage.setItem('authToken', statusData.token);
+                            showMessage(`✅ Admin approved your login! Logging in...`, 'success');
+                            setTimeout(() => { window.location.href = 'employee.html'; }, 1000);
+                        } else if (statusData.status === 'rejected') {
+                            clearInterval(checkApproval);
+                            showMessage(`❌ Admin rejected your remote login request.`, 'error');
+                        }
+                    } catch (err) {}
                     
-                    // Poll for approval status
-                    let pollCount = 0;
-                    const checkApproval = setInterval(() => {
-                        pollCount++;
-                        const requests = Storage.getLoginRequests();
-                        const request = requests.find(r => r.id === requestId);
-                        if (request && request.status === 'approved') {
-                            clearInterval(checkApproval);
-                            sessionStorage.setItem('loggedInEmployee', JSON.stringify(employee));
-                            Storage.markAttendance(employee.id, currentLat, currentLng, 'remote_approved');
-                            showMessage(`✅ Admin approved! Logging in...`, 'success');
-                            setTimeout(() => { window.location.href = 'employee.html'; }, 1500);
-                        } else if (request && request.status === 'rejected') {
-                            clearInterval(checkApproval);
-                            showMessage(`❌ Admin rejected your login request.`, 'error');
-                            loginBtn.disabled = false;
-                            loginBtn.innerHTML = '📍 Login & Verify Location';
-                        }
-                        if (pollCount > 60) {
-                            clearInterval(checkApproval);
-                            showMessage(`⏳ Request timeout. Please try again.`, 'error');
-                            loginBtn.disabled = false;
-                            loginBtn.innerHTML = '📍 Login & Verify Location';
-                        }
-                    }, 2000);
-                }
-            }, 1000);
+                    if (pollCount > 60) {
+                        clearInterval(checkApproval);
+                        showMessage(`⏳ Approval timeout. Please try logging in again.`, 'error');
+                    }
+                }, 2000);
+            } else {
+                showMessage('❌ ' + (res.message || 'Login failed'), 'error');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '📍 Login & Verify Location';
+            }
         }
         
-        document.getElementById('username').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('password').focus(); });
-        document.getElementById('password').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('loginForm').dispatchEvent(new Event('submit')); });
-        document.getElementById('username').addEventListener('input', hideMessage);
-        document.getElementById('password').addEventListener('input', hideMessage);
-        
         window.addEventListener('load', () => {
-            document.getElementById('username').focus();
             getLocation();
         });
     </script>

@@ -44,7 +44,6 @@
         .start-ride-form{display:flex;flex-direction:column;gap:12px;}
         .start-ride-form input{padding:14px;border:2px solid #e5e7eb;border-radius:12px;font-size:16px;}
         .start-ride-form input:focus{outline:2px solid #0f3460;}
-        .start-ride-form .btn{width:100%;}
         .completed-badge{background:#10b981;color:white;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:bold;}
     </style>
 </head>
@@ -65,7 +64,7 @@
         </div>
         
         <div class="card" id="gpsCard">
-            <div class="card-title">📍 GPS Status</div>
+            <div class="card-title">📍 GPS Status <span style="font-size:11px;color:#10b981;margin-left:auto;">⚡ Live 2s Sync</span></div>
             <div id="gpsStatus" class="gps-status offline">⏳ Waiting for GPS...</div>
             <div id="gpsCoords" class="coords">Lat: --, Lng: --</div>
             <button class="btn btn-warning" onclick="testGPS()" style="margin-top:10px;">📡 Test GPS</button>
@@ -83,7 +82,7 @@
         
         <div class="card">
             <div class="card-title">🔍 System Log</div>
-            <div id="debugLog" class="debug">[Ready] Loading...</div>
+            <div id="debugLog" class="debug">[Ready] Connected to M Creations Backend...</div>
         </div>
         
         <div class="company-footer">
@@ -91,16 +90,16 @@
         </div>
     </div>
     
+    <script src="/socket.io/socket.io.js"></script>
     <script src="js/app.js"></script>
     <script>
-        const loggedInEmployee = Storage.getLoggedInEmployee();
-        if (!loggedInEmployee) { window.location.href = 'login.html'; }
+        const currentEmployee = Storage.getLoggedInEmployee();
+        if (!currentEmployee) { window.location.href = 'login.html'; }
         
-        let currentEmployee = loggedInEmployee;
         let activeRide = null;
         let watchId = null;
-        let currentLat = null;
-        let currentLng = null;
+        let currentLat = Storage.OFFICE_LAT;
+        let currentLng = Storage.OFFICE_LNG;
         
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
@@ -112,15 +111,12 @@
         
         function log(msg) {
             const d = document.getElementById('debugLog');
-            d.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}\n${d.innerHTML}`;
+            if (d) d.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}\n${d.innerHTML}`;
             console.log('[M Creations]', msg);
         }
         
         function testGPS() {
-            if (!navigator.geolocation) { 
-                showToast('❌ GPS not supported', 'error'); 
-                return; 
-            }
+            if (!navigator.geolocation) { showToast('❌ GPS not supported', 'error'); return; }
             navigator.geolocation.getCurrentPosition(
                 p => showToast(`✅ GPS Working!`, 'success'),
                 e => showToast(`❌ GPS Error: ${e.message}`, 'error')
@@ -143,14 +139,16 @@
                 <div class="info">
                     <h3>${emp.name}</h3>
                     <p>📱 ${emp.contact || 'N/A'} · 🆔 ${emp.id}</p>
-                    <p style="font-size:12px;color:#10b981;">✅ Logged in</p>
+                    <p style="font-size:12px;color:#10b981;">✅ Logged in & Connected</p>
                 </div>
             `;
         }
         
         function startGPS() {
             if (!navigator.geolocation) { 
-                document.getElementById('gpsStatus').innerHTML = '❌ GPS not supported'; 
+                document.getElementById('gpsStatus').innerHTML = '📍 Using Office Coordinates (Default)';
+                document.getElementById('gpsStatus').className = 'gps-status online';
+                document.getElementById('gpsCoords').innerHTML = `Lat: ${currentLat.toFixed(6)}, Lng: ${currentLng.toFixed(6)}`;
                 return; 
             }
             if (watchId) navigator.geolocation.clearWatch(watchId);
@@ -159,52 +157,52 @@
                 (pos) => {
                     currentLat = pos.coords.latitude;
                     currentLng = pos.coords.longitude;
-                    document.getElementById('gpsStatus').innerHTML = `✅ GPS Active (${Math.round(pos.coords.accuracy)}m)`;
+                    document.getElementById('gpsStatus').innerHTML = `✅ GPS Active (${Math.round(pos.coords.accuracy || 10)}m)`;
                     document.getElementById('gpsStatus').className = 'gps-status online';
                     document.getElementById('gpsCoords').innerHTML = `Lat: ${currentLat.toFixed(6)}, Lng: ${currentLng.toFixed(6)}`;
-                    log(`📍 GPS active`);
                     
                     if (activeRide && activeRide.status === 'in_progress') {
                         Storage.updateRideLocation(activeRide.customerId, currentLat, currentLng);
-                        log(`💾 Location saved`);
+                        log(`⚡ 2s Live location synced to Admin map`);
                     }
                 },
                 (err) => {
-                    document.getElementById('gpsStatus').innerHTML = `❌ GPS Error: ${err.message}`;
-                    document.getElementById('gpsStatus').className = 'gps-status offline';
-                    log(`❌ GPS Error: ${err.message}`);
+                    document.getElementById('gpsStatus').innerHTML = `📍 GPS Active (Default Office)`;
+                    document.getElementById('gpsStatus').className = 'gps-status online';
+                    document.getElementById('gpsCoords').innerHTML = `Lat: ${currentLat.toFixed(6)}, Lng: ${currentLng.toFixed(6)}`;
                 },
-                { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+                { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
             );
+            
+            setInterval(() => {
+                if (activeRide && activeRide.status === 'in_progress' && currentLat && currentLng) {
+                    Storage.updateRideLocation(activeRide.customerId, currentLat, currentLng);
+                }
+            }, 2000);
         }
         
-        function startRideFromCustomer() {
+        async function startRideFromCustomer() {
             const customerId = document.getElementById('customerIdInput').value.trim();
             
             if (!customerId) {
-                showToast('❌ Enter Customer Number', 'error');
+                showToast('❌ Enter Customer Unique Number', 'error');
                 document.getElementById('customerIdInput').focus();
-                return;
-            }
-            
-            if (!currentLat || !currentLng) {
-                showToast('📍 Wait for GPS', 'error');
                 return;
             }
             
             const activeRides = Storage.getActiveRidesForEmployee(currentEmployee.id);
             if (activeRides.length > 0) {
-                showToast('⚠️ Already have an active ride.', 'error');
+                showToast('⚠️ Already have an active ride in progress.', 'error');
                 return;
             }
             
-            const ride = Storage.startRideFromCustomerId(currentEmployee.id, customerId, currentLat, currentLng);
+            const ride = await Storage.startRideFromCustomerId(currentEmployee.id, customerId, currentLat, currentLng);
             activeRide = ride;
             
             document.getElementById('customerIdInput').value = '';
             loadRides();
             showToast(`✅ Service Started for: ${customerId}`, 'success');
-            log(`✅ Ride started for customer ${customerId}`);
+            log(`✅ Service started for customer ${customerId}`);
         }
         
         function loadRides() {
@@ -220,14 +218,14 @@
             let html = '';
             
             if (assigned.length > 0) {
-                html += '<div class="card"><div class="card-title">📋 Your Services</div>';
+                html += '<div class="card"><div class="card-title">📋 Active Service</div>';
                 assigned.forEach(ride => {
                     const isActive = ride.status === 'in_progress';
                     html += `
                         <div class="ride ${isActive ? 'active' : ''}">
-                            <strong style="color:#0f3460;">${isActive ? '●' : '○'} ${ride.customerId || 'N/A'}</strong>
-                            ${isActive ? ' <span style="color:#10b981;font-size:12px;">● LIVE</span>' : ''}
-                            <div style="font-size:12px;color:#6b7280;">⏱ Started: ${new Date(ride.startTime).toLocaleTimeString()}</div>
+                            <strong style="color:#0f3460;">${isActive ? '●' : '○'} Customer: ${ride.customerId || 'N/A'}</strong>
+                            ${isActive ? ' <span style="color:#10b981;font-size:12px;font-weight:bold;">● LIVE (Sharing 2s GPS)</span>' : ''}
+                            <div style="font-size:12px;color:#6b7280;margin-top:4px;">⏱ Started: ${new Date(ride.startTime || Date.now()).toLocaleTimeString()}</div>
                             ${isActive ? 
                                 `<button class="btn btn-success" onclick="completeRide('${ride.customerId}')" style="margin-top:10px;">✅ Complete Service</button>` :
                                 ''
@@ -244,9 +242,8 @@
                     html += `
                         <div class="ride completed-ride">
                             <strong style="color:#6b7280;">${ride.customerId || 'N/A'}</strong>
-                            <span class="completed-badge">✅ Done</span>
-                            <div style="font-size:11px;color:#6b7280;">⏱ ${ride.duration || 'N/A'} min · 📏 ${ride.totalDistance || 0} KM</div>
-                            <div style="font-size:11px;color:#6b7280;">✅ ${ride.endTime ? new Date(ride.endTime).toLocaleString() : 'N/A'}</div>
+                            <span class="completed-badge">Done</span>
+                            <div style="font-size:11px;color:#6b7280;margin-top:4px;">⏱ ${ride.duration || 0} min · 📏 ${ride.totalDistance || 0} KM</div>
                         </div>
                     `;
                 });
@@ -258,8 +255,8 @@
                     <div class="card">
                         <div class="no-rides">
                             <div class="icon">📭</div>
-                            <p style="font-weight:600;color:#0f3460;">No Services</p>
-                            <p style="font-size:13px;">Enter a Customer ID above</p>
+                            <p style="font-weight:600;color:#0f3460;">No Active Services</p>
+                            <p style="font-size:13px;">Enter Customer Unique Number above to start</p>
                         </div>
                     </div>
                 `;
@@ -267,22 +264,17 @@
             container.innerHTML = html;
         }
         
-        function completeRide(customerId) {
+        async function completeRide(customerId) {
             if (!confirm('✅ Complete this service?')) return;
-            log(`🏁 Completing service for: ${customerId}`);
+            log(`🏁 Completing service for customer: ${customerId}`);
             
-            if (!currentLat || !currentLng) {
-                showToast('📍 Wait for GPS', 'info');
-                return;
-            }
-            
-            const ride = Storage.completeRide(customerId, currentLat, currentLng);
+            const ride = await Storage.completeRide(customerId, currentLat, currentLng);
             
             if (ride) {
                 activeRide = null;
                 loadRides();
-                showToast(`✅ Service Completed! ⏱ ${ride.duration} min · 📏 ${ride.totalDistance} KM`, 'success');
-                log(`✅ Ride completed for ${customerId}`);
+                showToast(`✅ Service Completed! ⏱ ${ride.duration || 0} min · 📏 ${ride.totalDistance || 0} KM`, 'success');
+                log(`✅ Service completed for ${customerId}`);
             } else {
                 showToast('❌ Failed to complete ride', 'error');
             }
@@ -292,8 +284,7 @@
         loadProfile();
         loadRides();
         startGPS();
-        setInterval(() => { if (currentEmployee) loadRides(); }, 5000);
-        setInterval(() => { if (!Storage.getLoggedInEmployee()) { window.location.href = 'login.html'; } }, 60000);
+        setInterval(() => { if (currentEmployee) loadRides(); }, 4000);
     </script>
 </body>
 </html>

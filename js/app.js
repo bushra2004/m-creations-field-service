@@ -1,286 +1,481 @@
 // ============================================
-// M CREATIONS
-// Field Service Tracking System
+// M CREATIONS - Field Service Tracking System
+// Frontend API & Real-time Socket.IO Engine
 // ============================================
 
+const API_BASE = window.location.origin.includes('http')
+    ? window.location.origin
+    : 'http://localhost:5001';
+
 const Storage = {
-    init() {
-        console.log('🔧 M Creations Service Tracker initialized');
-        
-        // Office Location (Kalaburagi Office - Masjid E Hussain)
-        this.OFFICE_LAT = 17.307873;
-        this.OFFICE_LNG = 76.822892;
-        this.OFFICE_RADIUS_KM = 0.100; // 100 meters
-        
-        if (!localStorage.getItem('employees')) {
-            localStorage.setItem('employees', JSON.stringify([]));
-        }
-        
-        if (!localStorage.getItem('rides')) { localStorage.setItem('rides', JSON.stringify([])); }
-        if (!localStorage.getItem('liveLocations')) { localStorage.setItem('liveLocations', JSON.stringify({})); }
-        if (!localStorage.getItem('rideCounter')) { localStorage.setItem('rideCounter', '1000'); }
-        if (!localStorage.getItem('attendance')) { localStorage.setItem('attendance', JSON.stringify([])); }
-        if (!localStorage.getItem('loginRequests')) { localStorage.setItem('loginRequests', JSON.stringify([])); }
-        
-        console.log('✅ M Creations System Ready');
-        console.log(`📍 Office Location: ${this.OFFICE_LAT}, ${this.OFFICE_LNG}`);
-        console.log(`📏 Office Radius: ${this.OFFICE_RADIUS_KM * 1000} meters`);
-    },
-    
-    // ============================================
-    // OFFICE LOCATION & GEO-FENCING
-    // ============================================
-    
+    // Office Location Configuration (Kalaburagi, Karnataka)
     OFFICE_LAT: 17.307873,
     OFFICE_LNG: 76.822892,
-    OFFICE_RADIUS_KM: 0.100,
-    
+    OFFICE_RADIUS_KM: 0.100, // 100 meters
+
+    socket: null,
+    cachedEmployees: [],
+    cachedRides: [],
+    cachedAttendance: [],
+    cachedRequests: [],
+    cachedLocations: {},
+
+    init() {
+        console.log('🔧 M Creations Service Tracker Initializing...');
+        console.log(`📍 Office Location: ${this.OFFICE_LAT}, ${this.OFFICE_LNG}`);
+        console.log(`📏 Office Radius: ${this.OFFICE_RADIUS_KM * 1000} meters`);
+
+        // Initialize Socket.IO connection if available
+        this.initSocket();
+
+        // Initial Data Fetch
+        this.refreshAllData();
+
+        // Background polling fallback every 5s
+        setInterval(() => this.refreshAllData(), 5000);
+    },
+
+    initSocket() {
+        if (typeof io !== 'undefined') {
+            try {
+                this.socket = io(API_BASE);
+
+                this.socket.on('connect', () => {
+                    console.log('⚡ Connected to M Creations Socket.IO Server');
+
+                    if (this.isAdminLoggedIn()) {
+                        this.socket.emit('join_admin');
+                    }
+
+                    const emp = this.getLoggedInEmployee();
+                    if (emp) {
+                        this.socket.emit('join_employee', { employeeId: emp.id });
+                    }
+                });
+
+                // Real-time 2-second location updates from other engineers
+                this.socket.on('location_updated', (data) => {
+                    if (data && data.employeeId) {
+                        const key = data.customerId ? data.customerId : `EMP_${data.employeeId}`;
+                        this.cachedLocations[key] = {
+                            lat: data.lat,
+                            lng: data.lng,
+                            employeeId: data.employeeId,
+                            timestamp: data.updatedAt || new Date().toISOString()
+                        };
+                        this.cachedLocations[`EMP_${data.employeeId}`] = {
+                            lat: data.lat,
+                            lng: data.lng,
+                            employeeId: data.employeeId,
+                            timestamp: data.updatedAt || new Date().toISOString()
+                        };
+                        window.dispatchEvent(new CustomEvent('locationUpdate', { detail: { location: data } }));
+                    }
+                });
+
+                // Real-time remote login request alerts
+                this.socket.on('new_login_request', (req) => {
+                    console.log('🔔 New Remote Login Request Received:', req);
+                    this.refreshRequests();
+                    window.dispatchEvent(new CustomEvent('loginRequestAlert', { detail: { request: req } }));
+                });
+
+                // Real-time request approval / rejection
+                this.socket.on('request_status_changed', (data) => {
+                    this.refreshRequests();
+                    window.dispatchEvent(new CustomEvent('requestStatusChanged', { detail: data }));
+                });
+
+                // Real-time ride updates
+                this.socket.on('ride_updated', (data) => {
+                    this.refreshRides();
+                    window.dispatchEvent(new CustomEvent('ridesUpdated', { detail: data }));
+                });
+
+            } catch (e) {
+                console.warn('Socket.IO connection notice:', e);
+            }
+        }
+    },
+
+    async refreshAllData() {
+        await Promise.all([
+            this.refreshEmployees(),
+            this.refreshRides(),
+            this.refreshLocations(),
+            this.refreshRequests()
+        ]);
+    },
+
+    // ============================================
+    // DISTANCE & GEO-FENCING
+    // ============================================
+
     calculateDistance(lat1, lng1, lat2, lng2) {
         const R = 6371;
         const dLat = (lat2 - lat1) * Math.PI / 180;
         const dLng = (lng2 - lng1) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                  Math.sin(dLng/2) * Math.sin(dLng/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     },
-    
+
     isWithinOfficeRadius(lat, lng) {
         const dist = this.calculateDistance(lat, lng, this.OFFICE_LAT, this.OFFICE_LNG);
         return dist <= this.OFFICE_RADIUS_KM;
     },
-    
+
     // ============================================
     // ADMIN AUTHENTICATION
     // ============================================
-    
-    adminLogin(username, password) {
-        const ADMIN_USERNAME = 'mohsin';
-        const ADMIN_PASSWORD = 'mohsin75333';
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-            sessionStorage.setItem('adminLoggedIn', 'true');
-            return { success: true };
+
+    async adminLogin(username, password) {
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (data.success) {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                sessionStorage.setItem('adminToken', data.token);
+                if (this.socket) this.socket.emit('join_admin');
+                return { success: true };
+            }
+            return { success: false, message: data.message || 'Invalid admin credentials' };
+        } catch (e) {
+            // Local fallback check
+            if (username === 'mohsin' && password === 'mohsin75333') {
+                sessionStorage.setItem('adminLoggedIn', 'true');
+                return { success: true };
+            }
+            return { success: false, message: 'Server connection error' };
         }
-        return { success: false, message: 'Invalid admin credentials' };
     },
-    
+
     isAdminLoggedIn() {
         return sessionStorage.getItem('adminLoggedIn') === 'true';
     },
-    
+
     adminLogout() {
         sessionStorage.removeItem('adminLoggedIn');
+        sessionStorage.removeItem('adminToken');
         return true;
     },
-    
+
     // ============================================
     // EMPLOYEE MANAGEMENT
     // ============================================
-    
+
+    async refreshEmployees() {
+        try {
+            const res = await fetch(`${API_BASE}/api/employees`);
+            const data = await res.json();
+            if (data.success && Array.isArray(data.employees)) {
+                this.cachedEmployees = data.employees;
+                localStorage.setItem('employees', JSON.stringify(data.employees));
+            }
+        } catch (e) {
+            try {
+                this.cachedEmployees = JSON.parse(localStorage.getItem('employees') || '[]');
+            } catch (err) { }
+        }
+        return this.cachedEmployees;
+    },
+
     getEmployees() {
-        try { return JSON.parse(localStorage.getItem('employees') || '[]'); } 
-        catch(e) { console.error('Error loading employees:', e); return []; }
+        this.refreshEmployees();
+        return this.cachedEmployees.length > 0
+            ? this.cachedEmployees
+            : JSON.parse(localStorage.getItem('employees') || '[]');
     },
-    
-    saveEmployees(employees) {
-        try { localStorage.setItem('employees', JSON.stringify(employees)); return true; } 
-        catch(e) { console.error('Error saving employees:', e); return false; }
-    },
-    
+
     getEmployeeByUsername(username) {
         const employees = this.getEmployees();
         return employees.find(e => e.name.toLowerCase() === username.toLowerCase());
     },
-    
+
     getEmployeeById(id) {
         const employees = this.getEmployees();
         return employees.find(e => e.id === id);
     },
-    
-    addEmployee(name, contact) {
-        const employees = this.getEmployees();
-        
-        if (employees.some(e => e.name.toLowerCase() === name.toLowerCase())) {
-            alert('❌ Employee with this name already exists');
-            return null;
-        }
-        
-        const newId = 'EMP' + String(employees.length + 1).padStart(3, '0');
-        const newEmployee = {
-            id: newId,
-            name: name.trim(),
-            contact: contact.trim(),
-            password: name.trim().toLowerCase() + '123',
-            status: 'available',
-            joinDate: new Date().toISOString().split('T')[0]
-        };
-        employees.push(newEmployee);
-        this.saveEmployees(employees);
-        console.log('✅ Employee added:', newEmployee);
-        return newEmployee;
-    },
-    
-    deleteEmployee(employeeId) {
-        let employees = this.getEmployees();
-        const employee = employees.find(e => e.id === employeeId);
-        if (!employee) return false;
-        const rides = this.getRides();
-        const hasActiveRide = rides.some(r => r.employeeId === employeeId && r.status !== 'completed');
-        if (hasActiveRide) {
-            alert('❌ Cannot delete employee with active rides.');
-            return false;
-        }
-        employees = employees.filter(e => e.id !== employeeId);
-        this.saveEmployees(employees);
-        return true;
-    },
-    
-    // ============================================
-    // LOGIN & REMOTE REQUEST SYSTEM
-    // ============================================
-    
-    loginEmployee(username, password, lat, lng) {
-        console.log('🔍 Login attempt:', username);
-        
-        const employee = this.getEmployeeByUsername(username);
-        if (!employee) {
-            return { success: false, message: 'Employee not found' };
-        }
-        if (employee.password !== password) {
-            return { success: false, message: 'Incorrect password' };
-        }
-        
-        const withinOffice = this.isWithinOfficeRadius(lat, lng);
-        const distance = this.calculateDistance(lat, lng, this.OFFICE_LAT, this.OFFICE_LNG);
-        
-        if (withinOffice) {
-            sessionStorage.setItem('loggedInEmployee', JSON.stringify(employee));
-            this.markAttendance(employee.id, lat, lng, 'auto');
-            return { 
-                success: true, 
-                employee: employee, 
-                withinOffice: true,
-                distance: distance,
-                message: '✅ Logged in from office. Attendance marked.'
+
+    async addEmployee(name, contact) {
+        try {
+            const res = await fetch(`${API_BASE}/api/employees`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, contact })
+            });
+            const data = await res.json();
+            if (data.success && data.employee) {
+                await this.refreshEmployees();
+                return data.employee;
+            } else {
+                if (data.message) alert(`❌ ${data.message}`);
+                return null;
+            }
+        } catch (e) {
+            // Local fallback creation
+            const employees = this.getEmployees();
+            const newId = 'EMP' + String(employees.length + 1).padStart(3, '0');
+            const newEmp = {
+                id: newId,
+                name: name.trim(),
+                contact: contact.trim(),
+                password: name.trim().toLowerCase() + '123',
+                status: 'available',
+                joinDate: new Date().toISOString().split('T')[0]
             };
-        } else {
-            const requestId = this.createLoginRequest(employee.id, lat, lng);
-            return {
-                success: false,
-                withinOffice: false,
-                requestId: requestId,
-                employee: employee,
-                distance: distance,
-                message: `⚠️ You are ${(distance * 1000).toFixed(0)} meters from office. Request sent to Admin.`
-            };
+            employees.push(newEmp);
+            localStorage.setItem('employees', JSON.stringify(employees));
+            this.cachedEmployees = employees;
+            return newEmp;
         }
     },
-    
+
+    async deleteEmployee(employeeId) {
+        try {
+            const res = await fetch(`${API_BASE}/api/employees/${employeeId}`, {
+                method: 'DELETE'
+            });
+            const data = await res.json();
+            if (data.success) {
+                await this.refreshEmployees();
+                return true;
+            } else {
+                alert(`❌ ${data.message}`);
+                return false;
+            }
+        } catch (e) {
+            let employees = this.getEmployees();
+            employees = employees.filter(e => e.id !== employeeId);
+            localStorage.setItem('employees', JSON.stringify(employees));
+            this.cachedEmployees = employees;
+            return true;
+        }
+    },
+
+    // ============================================
+    // EMPLOYEE LOGIN & GEO-FENCING
+    // ============================================
+
+    async loginEmployee(username, password, lat, lng) {
+        try {
+            const res = await fetch(`${API_BASE}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, lat, lng })
+            });
+            const data = await res.json();
+
+            if (data.success && data.withinOffice) {
+                sessionStorage.setItem('loggedInEmployee', JSON.stringify(data.employee));
+                sessionStorage.setItem('authToken', data.token);
+                if (this.socket) this.socket.emit('join_employee', { employeeId: data.employee.id });
+                return {
+                    success: true,
+                    employee: data.employee,
+                    withinOffice: true,
+                    distance: data.distance,
+                    message: data.message
+                };
+            } else if (!data.withinOffice && data.requestId) {
+                return {
+                    success: false,
+                    withinOffice: false,
+                    requestId: data.requestId,
+                    employee: data.employee,
+                    distance: data.distance,
+                    message: data.message
+                };
+            }
+            return { success: false, message: data.message || 'Login failed' };
+        } catch (e) {
+            // Local fallback geo-fencing calculation
+            const employee = this.getEmployeeByUsername(username);
+            if (!employee || employee.password !== password) {
+                return { success: false, message: 'Invalid credentials' };
+            }
+            const withinOffice = this.isWithinOfficeRadius(lat, lng);
+            const distance = this.calculateDistance(lat, lng, this.OFFICE_LAT, this.OFFICE_LNG);
+            if (withinOffice) {
+                sessionStorage.setItem('loggedInEmployee', JSON.stringify(employee));
+                this.markAttendance(employee.id, lat, lng, 'auto');
+                return { success: true, employee, withinOffice: true, distance, message: 'Logged in from office' };
+            } else {
+                const reqId = this.createLoginRequest(employee.id, lat, lng);
+                return { success: false, withinOffice: false, requestId: reqId, employee, distance, message: 'Remote request sent' };
+            }
+        }
+    },
+
     getLoggedInEmployee() {
         try {
             const data = sessionStorage.getItem('loggedInEmployee');
             return data ? JSON.parse(data) : null;
-        } catch(e) {
+        } catch (e) {
             return null;
         }
     },
-    
+
     logoutEmployee() {
         sessionStorage.removeItem('loggedInEmployee');
+        sessionStorage.removeItem('authToken');
         return true;
     },
-    
+
     // ============================================
     // LOGIN REQUEST SYSTEM
     // ============================================
-    
-    createLoginRequest(employeeId, lat, lng) {
-        const requests = this.getLoginRequests();
-        const employee = this.getEmployeeById(employeeId);
-        
-        const request = {
-            id: 'REQ-' + Date.now(),
-            employeeId: employeeId,
-            employeeName: employee ? employee.name : 'Unknown',
-            lat: lat,
-            lng: lng,
-            timestamp: new Date().toISOString(),
-            status: 'pending',
-            approvedAt: null,
-            approvedBy: null
-        };
-        requests.push(request);
-        this.saveLoginRequests(requests);
-        return request.id;
+
+    async refreshRequests() {
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/requests`);
+            const data = await res.json();
+            if (data.success && Array.isArray(data.requests)) {
+                this.cachedRequests = data.requests;
+                localStorage.setItem('loginRequests', JSON.stringify(data.requests));
+            }
+        } catch (e) {
+            try {
+                this.cachedRequests = JSON.parse(localStorage.getItem('loginRequests') || '[]');
+            } catch (err) { }
+        }
+        return this.cachedRequests;
     },
-    
+
     getLoginRequests() {
-        try { 
-            const data = localStorage.getItem('loginRequests');
-            return data ? JSON.parse(data) : []; 
-        } catch(e) { 
-            console.error('Error loading requests:', e); 
-            return []; 
-        }
+        this.refreshRequests();
+        return this.cachedRequests.length > 0
+            ? this.cachedRequests
+            : JSON.parse(localStorage.getItem('loginRequests') || '[]');
     },
-    
-    saveLoginRequests(requests) {
-        try { 
-            localStorage.setItem('loginRequests', JSON.stringify(requests)); 
-            return true; 
-        } catch(e) { 
-            console.error('Error saving requests:', e); 
-            return false; 
-        }
-    },
-    
+
     getPendingLoginRequests() {
         const requests = this.getLoginRequests();
         return requests.filter(r => r.status === 'pending');
     },
-    
-    approveLoginRequest(requestId) {
-        const requests = this.getLoginRequests();
-        const index = requests.findIndex(r => r.id === requestId);
-        if (index === -1) return false;
-        requests[index].status = 'approved';
-        requests[index].approvedAt = new Date().toISOString();
-        requests[index].approvedBy = 'Admin';
-        this.saveLoginRequests(requests);
-        return true;
+
+    createLoginRequest(employeeId, lat, lng) {
+        const reqId = 'REQ-' + Date.now();
+        const emp = this.getEmployeeById(employeeId);
+        const request = {
+            id: reqId,
+            employeeId,
+            employeeName: emp ? emp.name : 'Unknown',
+            lat,
+            lng,
+            timestamp: new Date().toISOString(),
+            status: 'pending'
+        };
+        this.cachedRequests.push(request);
+        localStorage.setItem('loginRequests', JSON.stringify(this.cachedRequests));
+        return reqId;
     },
-    
-    rejectLoginRequest(requestId) {
-        const requests = this.getLoginRequests();
-        const index = requests.findIndex(r => r.id === requestId);
-        if (index === -1) return false;
-        requests[index].status = 'rejected';
-        this.saveLoginRequests(requests);
-        return true;
+
+    async approveLoginRequest(requestId) {
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/requests/${requestId}/approve`, {
+                method: 'PUT'
+            });
+            const data = await res.json();
+            if (data.success) {
+                await this.refreshRequests();
+                return true;
+            }
+            return false;
+        } catch (e) {
+            const index = this.cachedRequests.findIndex(r => r.id === requestId);
+            if (index !== -1) {
+                this.cachedRequests[index].status = 'approved';
+                localStorage.setItem('loginRequests', JSON.stringify(this.cachedRequests));
+                return true;
+            }
+            return false;
+        }
     },
-    
+
+    async rejectLoginRequest(requestId) {
+        try {
+            const res = await fetch(`${API_BASE}/api/admin/requests/${requestId}/reject`, {
+                method: 'PUT'
+            });
+            const data = await res.json();
+            if (data.success) {
+                await this.refreshRequests();
+                return true;
+            }
+            return false;
+        } catch (e) {
+            const index = this.cachedRequests.findIndex(r => r.id === requestId);
+            if (index !== -1) {
+                this.cachedRequests[index].status = 'rejected';
+                localStorage.setItem('loginRequests', JSON.stringify(this.cachedRequests));
+                return true;
+            }
+            return false;
+        }
+    },
+
     // ============================================
     // ATTENDANCE SYSTEM
     // ============================================
-    
+
+    async getAttendance() {
+        try {
+            const res = await fetch(`${API_BASE}/api/attendance/all`);
+            const data = await res.json();
+            if (data.success && Array.isArray(data.attendance)) {
+                this.cachedAttendance = data.attendance;
+                localStorage.setItem('attendance', JSON.stringify(data.attendance));
+            }
+        } catch (e) {
+            try {
+                this.cachedAttendance = JSON.parse(localStorage.getItem('attendance') || '[]');
+            } catch (err) { }
+        }
+        return this.cachedAttendance.length > 0 ? this.cachedAttendance : JSON.parse(localStorage.getItem('attendance') || '[]');
+    },
+
+    async getTodayAttendance() {
+        const today = new Date().toISOString().split('T')[0];
+        try {
+            const res = await fetch(`${API_BASE}/api/attendance/${today}`);
+            const data = await res.json();
+            if (data.success && Array.isArray(data.attendance)) {
+                return data.attendance;
+            }
+        } catch (e) { }
+
+        const all = await this.getAttendance();
+        return all.filter(a => a.date === today);
+    },
+
+    async getAttendanceReport(startDate, endDate) {
+        try {
+            const res = await fetch(`${API_BASE}/api/attendance/range/${startDate}/${endDate}`);
+            const data = await res.json();
+            if (data.success && Array.isArray(data.attendance)) {
+                return data.attendance;
+            }
+        } catch (e) { }
+
+        const all = await this.getAttendance();
+        return all.filter(a => a.date >= startDate && a.date <= endDate);
+    },
+
     markAttendance(employeeId, lat, lng, type = 'auto') {
         const today = new Date().toISOString().split('T')[0];
-        const attendance = this.getAttendance();
-        const existing = attendance.find(a => a.employeeId === employeeId && a.date === today);
-        if (existing) {
-            existing.checkinLat = lat;
-            existing.checkinLng = lng;
-            existing.checkinType = type;
-            this.saveAttendance(attendance);
-            return { success: false, message: 'Attendance already marked for today' };
-        }
-        const employee = this.getEmployeeById(employeeId);
-        if (!employee) { return { success: false, message: 'Employee not found' }; }
+        const attendance = JSON.parse(localStorage.getItem('attendance') || '[]');
+        const emp = this.getEmployeeById(employeeId);
         const distance = this.calculateDistance(lat, lng, this.OFFICE_LAT, this.OFFICE_LNG);
-        attendance.push({
-            employeeId: employeeId,
-            employeeName: employee.name,
+        const record = {
+            employeeId,
+            employeeName: emp ? emp.name : 'Employee',
             date: today,
             loginTime: new Date().toISOString(),
             checkinLat: lat,
@@ -291,81 +486,76 @@ const Storage = {
             ridesCompleted: 0,
             totalKM: 0,
             customerIds: []
-        });
-        this.saveAttendance(attendance);
-        return { success: true, message: 'Attendance marked successfully' };
+        };
+        attendance.push(record);
+        localStorage.setItem('attendance', JSON.stringify(attendance));
+        return { success: true };
     },
-    
-    getAttendance() {
-        try { return JSON.parse(localStorage.getItem('attendance') || '[]'); } 
-        catch(e) { console.error('Error loading attendance:', e); return []; }
-    },
-    
+
     saveAttendance(attendance) {
-        try { localStorage.setItem('attendance', JSON.stringify(attendance)); return true; } 
-        catch(e) { console.error('Error saving attendance:', e); return false; }
+        localStorage.setItem('attendance', JSON.stringify(attendance));
+        this.cachedAttendance = attendance;
+        return true;
     },
-    
-    getTodayAttendance() {
-        const today = new Date().toISOString().split('T')[0];
-        const attendance = this.getAttendance();
-        return attendance.filter(a => a.date === today);
-    },
-    
-    getAttendanceReport(startDate, endDate) {
-        const attendance = this.getAttendance();
-        return attendance.filter(a => a.date >= startDate && a.date <= endDate);
-    },
-    
-    updateAttendanceRideStats(employeeId, customerId, km) {
-        const today = new Date().toISOString().split('T')[0];
-        const attendance = this.getAttendance();
-        const record = attendance.find(a => a.employeeId === employeeId && a.date === today);
-        if (record) {
-            record.ridesCompleted = (record.ridesCompleted || 0) + 1;
-            record.totalKM = (record.totalKM || 0) + (km || 0);
-            if (customerId && !record.customerIds) { record.customerIds = []; }
-            if (customerId && !record.customerIds.includes(customerId)) {
-                record.customerIds.push(customerId);
+
+    // ============================================
+    // RIDE MANAGEMENT & GPS TRACKING
+    // ============================================
+
+    async refreshRides() {
+        try {
+            const res = await fetch(`${API_BASE}/api/rides`);
+            const data = await res.json();
+            if (data.success && Array.isArray(data.rides)) {
+                this.cachedRides = data.rides;
+                localStorage.setItem('rides', JSON.stringify(data.rides));
             }
-            this.saveAttendance(attendance);
-            return true;
+        } catch (e) {
+            try {
+                this.cachedRides = JSON.parse(localStorage.getItem('rides') || '[]');
+            } catch (err) { }
         }
-        return false;
+        return this.cachedRides;
     },
-    
-    // ============================================
-    // RIDE MANAGEMENT (No REF numbers)
-    // ============================================
-    
+
     getRides() {
-        try { return JSON.parse(localStorage.getItem('rides') || '[]'); } 
-        catch(e) { console.error('Error loading rides:', e); return []; }
+        this.refreshRides();
+        return this.cachedRides.length > 0 ? this.cachedRides : JSON.parse(localStorage.getItem('rides') || '[]');
     },
-    
+
     saveRides(rides) {
-        try { 
-            localStorage.setItem('rides', JSON.stringify(rides)); 
-            window.dispatchEvent(new CustomEvent('ridesUpdated', { detail: { rides } }));
-            return true; 
-        } catch(e) { console.error('Error saving rides:', e); return false; }
+        localStorage.setItem('rides', JSON.stringify(rides));
+        this.cachedRides = rides;
+        return true;
     },
-    
-    startRideFromCustomerId(employeeId, customerId, lat, lng) {
+
+    async startRideFromCustomerId(employeeId, customerId, lat, lng) {
+        try {
+            const res = await fetch(`${API_BASE}/api/rides/start`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ employeeId, customerId, lat, lng })
+            });
+            const data = await res.json();
+            if (data.success && data.ride) {
+                await this.refreshRides();
+                return data.ride;
+            }
+        } catch (e) { }
+
+        // Local fallback
         const ride = {
-            employeeId: employeeId,
+            id: Date.now(),
+            employeeId,
             customerId: customerId.trim(),
             status: 'in_progress',
             startTime: new Date().toISOString(),
             startLat: lat,
             startLng: lng,
             endTime: null,
-            endLat: null,
-            endLng: null,
             totalDistance: 0,
             duration: 0,
-            stops: 0,
-            locationUpdates: [],
+            locationUpdates: [{ lat, lng, timestamp: new Date().toISOString() }],
             completed: false
         };
         const rides = this.getRides();
@@ -373,227 +563,138 @@ const Storage = {
         this.saveRides(rides);
         return ride;
     },
-    
-    completeRide(rideIndex, endLat, endLng) {
+
+    async completeRide(rideIdentifier, endLat, endLng) {
+        try {
+            const res = await fetch(`${API_BASE}/api/rides/complete`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerId: rideIdentifier, endLat, endLng })
+            });
+            const data = await res.json();
+            if (data.success && data.ride) {
+                await this.refreshRides();
+                return data.ride;
+            }
+        } catch (e) { }
+
+        // Local fallback completion
         const rides = this.getRides();
-        const index = rides.findIndex(r => r === rideIndex || r.customerId === rideIndex);
+        const index = rides.findIndex(r => r.id === rideIdentifier || r.customerId === rideIdentifier);
         if (index === -1) return null;
-        
+
         const ride = rides[index];
         ride.status = 'completed';
         ride.completed = true;
         ride.endTime = new Date().toISOString();
         ride.endLat = endLat;
         ride.endLng = endLng;
-        
+
         const start = new Date(ride.startTime);
         const end = new Date(ride.endTime);
         ride.duration = Math.round((end - start) / 1000 / 60);
-        
+
         if (ride.locationUpdates && ride.locationUpdates.length > 1) {
             let totalKM = 0;
             for (let i = 1; i < ride.locationUpdates.length; i++) {
-                const prev = ride.locationUpdates[i-1];
+                const prev = ride.locationUpdates[i - 1];
                 const curr = ride.locationUpdates[i];
                 totalKM += this.calculateDistance(prev.lat, prev.lng, curr.lat, curr.lng);
             }
             ride.totalDistance = Math.round(totalKM * 100) / 100;
         }
-        
+
         this.saveRides(rides);
-        this.updateAttendanceRideStats(ride.employeeId, ride.customerId, ride.totalDistance);
         return ride;
     },
-    
+
     getRidesForEmployee(employeeId) {
         const rides = this.getRides();
         return rides.filter(r => r.employeeId === employeeId);
     },
-    
+
     getActiveRidesForEmployee(employeeId) {
         const rides = this.getRides();
         return rides.filter(r => r.employeeId === employeeId && r.status !== 'completed');
     },
-    
-    updateRideLocation(rideIndex, lat, lng) {
-        const rides = this.getRides();
-        const index = rides.findIndex(r => r === rideIndex || r.customerId === rideIndex);
-        if (index === -1) return false;
-        if (!rides[index].locationUpdates) { rides[index].locationUpdates = []; }
-        rides[index].locationUpdates.push({ lat: lat, lng: lng, timestamp: new Date().toISOString() });
-        this.saveRides(rides);
-        this.updateLiveLocation(rideIndex, lat, lng);
+
+    updateRideLocation(rideIdentifier, lat, lng) {
+        const emp = this.getLoggedInEmployee();
+        const employeeId = emp ? emp.id : null;
+
+        // Send via Socket.IO for 2-second real-time broadcast
+        if (this.socket && employeeId) {
+            this.socket.emit('location_update', {
+                employeeId,
+                lat,
+                lng,
+                customerId: rideIdentifier
+            });
+        }
+
+        // Send via API endpoint
+        if (employeeId) {
+            fetch(`${API_BASE}/api/location/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ employeeId, lat, lng, customerId: rideIdentifier })
+            }).catch(() => { });
+        }
+
+        // Save local update
+        this.updateLiveLocation(rideIdentifier, lat, lng);
         return true;
     },
-    
+
     // ============================================
-    // LIVE LOCATION
+    // LIVE LOCATION CACHE
     // ============================================
-    
-    getLiveLocations() {
-        try { return JSON.parse(localStorage.getItem('liveLocations') || '{}'); } 
-        catch(e) { console.error('Error loading live locations:', e); return {}; }
-    },
-    
-    saveLiveLocations(locations) {
-        try { 
-            localStorage.setItem('liveLocations', JSON.stringify(locations)); 
-            window.dispatchEvent(new CustomEvent('locationsUpdated', { detail: { locations } }));
-            return true; 
-        } catch(e) { console.error('Error saving live locations:', e); return false; }
-    },
-    
-    updateLiveLocation(rideId, lat, lng) {
-        if (!rideId || lat === undefined || lng === undefined) {
-            console.error('❌ Invalid location data');
-            return false;
+
+    async refreshLocations() {
+        try {
+            const res = await fetch(`${API_BASE}/api/locations`);
+            const data = await res.json();
+            if (data.success && data.locations) {
+                this.cachedLocations = { ...this.cachedLocations, ...data.locations };
+                localStorage.setItem('liveLocations', JSON.stringify(this.cachedLocations));
+            }
+        } catch (e) {
+            try {
+                this.cachedLocations = JSON.parse(localStorage.getItem('liveLocations') || '{}');
+            } catch (err) { }
         }
+        return this.cachedLocations;
+    },
+
+    getLiveLocations() {
+        this.refreshLocations();
+        const stored = JSON.parse(localStorage.getItem('liveLocations') || '{}');
+        return { ...stored, ...this.cachedLocations };
+    },
+
+    updateLiveLocation(rideId, lat, lng) {
         const locations = this.getLiveLocations();
-        locations[rideId] = { lat: lat, lng: lng, timestamp: new Date().toISOString() };
-        this.saveLiveLocations(locations);
+        locations[rideId] = { lat, lng, timestamp: new Date().toISOString() };
+        localStorage.setItem('liveLocations', JSON.stringify(locations));
+        this.cachedLocations = locations;
         window.dispatchEvent(new CustomEvent('locationUpdate', { detail: { rideId, location: locations[rideId] } }));
         return true;
     },
-    
+
     // ============================================
-    // EXCEL EXPORT (Only .xlsx)
+    // EXCEL EXPORT REPORT
     // ============================================
-    
+
+    exportExcelFile() {
+        window.location.href = `${API_BASE}/api/report/daily`;
+    },
+
     generateExcelReport() {
-        const attendance = this.getAttendance();
-        const rides = this.getRides();
-        const today = new Date().toISOString().split('T')[0];
-        
-        const todayAttendance = attendance.filter(a => a.date === today);
-        const todayRides = rides.filter(r => r.status === 'completed' && r.endTime && new Date(r.endTime).toISOString().split('T')[0] === today);
-        
-        // Build HTML table for Excel
-        let tableRows = '';
-        
-        if (todayAttendance.length === 0) {
-            tableRows = `
-                <tr>
-                    <td colspan="6" style="text-align:center;padding:20px;color:#6b7280;">No attendance records for today</td>
-                </tr>
-            `;
-        } else {
-            todayAttendance.forEach(a => {
-                const employeeRides = todayRides.filter(r => r.employeeId === a.employeeId);
-                const customerIds = employeeRides.map(r => r.customerId).filter(id => id).join(', ');
-                const rideCount = employeeRides.length;
-                const totalKM = employeeRides.reduce((sum, r) => sum + (r.totalDistance || 0), 0);
-                
-                const checkinLocation = `${a.checkinLat ? a.checkinLat.toFixed(6) : 'N/A'}, ${a.checkinLng ? a.checkinLng.toFixed(6) : 'N/A'}`;
-                const loginTime = a.loginTime ? new Date(a.loginTime).toLocaleString() : 'N/A';
-                const loginType = a.checkinType === 'auto' ? '🏢 Local' : '📱 Remote';
-                
-                tableRows += `
-                    <tr>
-                        <td style="border:1px solid #ddd;padding:8px;">${a.employeeName}</td>
-                        <td style="border:1px solid #ddd;padding:8px;">${loginTime}</td>
-                        <td style="border:1px solid #ddd;padding:8px;">${loginType}</td>
-                        <td style="border:1px solid #ddd;padding:8px;">${checkinLocation}</td>
-                        <td style="border:1px solid #ddd;padding:8px;">${customerIds || 'None'}</td>
-                        <td style="border:1px solid #ddd;padding:8px;">${rideCount}</td>
-                        <td style="border:1px solid #ddd;padding:8px;">${totalKM.toFixed(2)} KM</td>
-                    </tr>
-                `;
-            });
-        }
-        
-        const totalRides = todayRides.length;
-        const totalKM = todayRides.reduce((sum, r) => sum + (r.totalDistance || 0), 0);
-        
-        return `
-            <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-                  xmlns:w='urn:schemas-microsoft-com:office:word' 
-                  xmlns='http://www.w3.org/TR/REC-html40'>
-            <head>
-                <meta charset="utf-8">
-                <title>M Creations - Daily Report</title>
-                <!--[if gte mso 9]>
-                <xml>
-                    <w:WordDocument>
-                        <w:View>Print</w:View>
-                        <w:Zoom>100</w:Zoom>
-                    </w:WordDocument>
-                </xml>
-                <![endif]-->
-                <style>
-                    body { font-family: Arial, sans-serif; padding: 40px; }
-                    .header { text-align: center; border-bottom: 3px solid #0f3460; padding-bottom: 20px; margin-bottom: 30px; }
-                    .header h1 { color: #0f3460; font-size: 28px; margin: 0; }
-                    .header h1 span { color: #e94560; }
-                    .header .sub { color: #6b7280; font-size: 14px; }
-                    .header .brand { color: #0f3460; font-size: 12px; font-weight: bold; }
-                    .summary { background: #f0f4ff; padding: 20px; border-radius: 10px; margin-bottom: 30px; }
-                    .summary table { width: 100%; }
-                    .summary td { padding: 8px 15px; font-size: 14px; }
-                    .summary .label { font-weight: bold; color: #0f3460; }
-                    .summary .value { font-weight: bold; font-size: 18px; color: #1f2937; }
-                    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 20px; }
-                    th { background: #0f3460; color: white; padding: 10px; border: 1px solid #0f3460; text-align: left; }
-                    td { padding: 8px; border: 1px solid #ddd; }
-                    tr:nth-child(even) { background: #f9fafb; }
-                    .footer { text-align: center; color: #6b7280; font-size: 12px; margin-top: 40px; border-top: 1px solid #e5e7eb; padding-top: 20px; }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h1>🏢 M <span>Creations</span></h1>
-                    <div class="sub">Daily Field Service Report</div>
-                    <div class="brand">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</div>
-                </div>
-                <div class="summary">
-                    <table>
-                        <tr>
-                            <td class="label">👥 Total Employees Present</td>
-                            <td class="value">${todayAttendance.length}</td>
-                            <td class="label">🚗 Total Rides</td>
-                            <td class="value">${totalRides}</td>
-                        </tr>
-                        <tr>
-                            <td class="label">📏 Total KM Traveled</td>
-                            <td class="value">${totalKM.toFixed(2)} KM</td>
-                            <td class="label">📍 Office Location</td>
-                            <td class="value">Kalaburagi, Karnataka</td>
-                        </tr>
-                    </table>
-                </div>
-                <h3>📋 Employee Details</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Employee Name</th>
-                            <th>Check-in Time</th>
-                            <th>Login Type</th>
-                            <th>Check-in Location</th>
-                            <th>Customer IDs</th>
-                            <th>Rides Completed</th>
-                            <th>Total KM</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${tableRows}
-                        <tr style="background:#e5e7eb; font-weight: bold;">
-                            <td colspan="5" style="text-align: right;">TOTAL:</td>
-                            <td>${totalRides}</td>
-                            <td>${totalKM.toFixed(2)} KM</td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="footer">
-                    <p>🏢 M <span style="color:#e94560;">Creations</span> — Field Service Excellence</p>
-                    <p>Generated on: ${new Date().toLocaleString()}</p>
-                </div>
-            </body>
-            </html>
-        `;
+        this.exportExcelFile();
+        return '';
     }
 };
 
-// Initialize the system
+// Initialize System Engine
 Storage.init();
-console.log('🚀 M Creations - Field Tracker Ready');
-console.log('📍 Office: Kalaburagi, Karnataka (17.307873, 76.822892)');
-console.log('📏 Radius: 100 meters');
+console.log('🚀 M Creations Field Service API Client Connected');
