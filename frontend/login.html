@@ -165,6 +165,11 @@
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '📍 Login & Verify Location';
                 
+                // Store the employee object returned from the initial login response
+                // so it is available once the admin approves the request, even if
+                // the status endpoint doesn't return it.
+                const pendingEmployee = res.employee;
+                
                 // Poll for admin approval
                 let pollCount = 0;
                 const checkApproval = setInterval(async () => {
@@ -174,10 +179,10 @@
                         const statusData = await statusRes.json();
                         if (statusData.success && statusData.status === 'approved') {
                             clearInterval(checkApproval);
-                            sessionStorage.setItem('loggedInEmployee', JSON.stringify(res.employee || statusData.employee));
+                            sessionStorage.setItem('loggedInEmployee', JSON.stringify(statusData.employee || pendingEmployee));
                             if (statusData.token) sessionStorage.setItem('authToken', statusData.token);
                             showMessage(`✅ Admin approved your login! Logging in...`, 'success');
-                            setTimeout(() => { window.location.href = 'employee.html'; }, 1000);
+                            window.location.href = 'employee.html';
                         } else if (statusData.status === 'rejected') {
                             clearInterval(checkApproval);
                             showMessage(`❌ Admin rejected your remote login request.`, 'error');
@@ -202,3 +207,4 @@
     </script>
 </body>
 </html>
+
