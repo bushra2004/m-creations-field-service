@@ -99,7 +99,6 @@
             locationStatus.textContent = '📍 Detecting your location...';
             
             if (!navigator.geolocation) {
-                // Fallback to office location for demo browser testing if GPS missing
                 currentLat = Storage.OFFICE_LAT;
                 currentLng = Storage.OFFICE_LNG;
                 locationStatus.textContent = '📍 GPS not available. Defaulted to Office Coordinates.';
@@ -122,7 +121,6 @@
                     locationStatus.style.borderColor = withinOffice ? '#10b981' : '#f59e0b';
                 },
                 (err) => {
-                    // Fallback to office coords if browser blocks location access
                     currentLat = Storage.OFFICE_LAT;
                     currentLng = Storage.OFFICE_LNG;
                     locationStatus.innerHTML = '📍 GPS Permission Pending. Location set to Office Default.';
@@ -165,30 +163,54 @@
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '📍 Login & Verify Location';
                 
-                // Poll for admin approval
+                // Store employee data before polling
+                const pendingEmployee = res.employee;
+                
+                // Poll every 1 second for approval
                 let pollCount = 0;
                 const checkApproval = setInterval(async () => {
                     pollCount++;
+                    
                     try {
                         const statusRes = await fetch(`${API_BASE}/api/login/request/${res.requestId}`);
                         const statusData = await statusRes.json();
+                        
                         if (statusData.success && statusData.status === 'approved') {
                             clearInterval(checkApproval);
-                            sessionStorage.setItem('loggedInEmployee', JSON.stringify(res.employee || statusData.employee));
-                            if (statusData.token) sessionStorage.setItem('authToken', statusData.token);
+                            
+                            // Store employee and token
+                            const employee = statusData.employee || pendingEmployee;
+                            sessionStorage.setItem('loggedInEmployee', JSON.stringify(employee));
+                            
+                            if (statusData.token) {
+                                sessionStorage.setItem('authToken', statusData.token);
+                            }
+                            
                             showMessage(`✅ Admin approved your login! Logging in...`, 'success');
-                            setTimeout(() => { window.location.href = 'employee.html'; }, 1000);
+                            
+                            // Redirect immediately
+                            setTimeout(() => {
+                                window.location.href = 'employee.html';
+                            }, 500);
+                            
                         } else if (statusData.status === 'rejected') {
                             clearInterval(checkApproval);
                             showMessage(`❌ Admin rejected your remote login request.`, 'error');
+                            loginBtn.disabled = false;
+                            loginBtn.innerHTML = '📍 Login & Verify Location';
                         }
-                    } catch (err) {}
+                    } catch (err) {
+                        // Silent catch - network issues shouldn't break polling
+                    }
                     
-                    if (pollCount > 60) {
+                    // Timeout after 120 seconds
+                    if (pollCount > 120) {
                         clearInterval(checkApproval);
                         showMessage(`⏳ Approval timeout. Please try logging in again.`, 'error');
+                        loginBtn.disabled = false;
+                        loginBtn.innerHTML = '📍 Login & Verify Location';
                     }
-                }, 2000);
+                }, 1000);
             } else {
                 showMessage('❌ ' + (res.message || 'Login failed'), 'error');
                 loginBtn.disabled = false;
@@ -202,3 +224,4 @@
     </script>
 </body>
 </html>
+
