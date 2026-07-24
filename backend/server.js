@@ -94,7 +94,7 @@ app.get('*', (req, res, next) => {
 });
 
 // Start Server with Port Fallback Error Handling
-const INITIAL_PORT = parseInt(process.env.PORT || '5001');
+const INITIAL_PORT = parseInt(process.env.PORT || '3000');
 
 async function startServer(portToTry) {
     await db.initDB();
